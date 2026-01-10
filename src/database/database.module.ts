@@ -1,3 +1,18 @@
+/**
+ * Database Module
+ *
+ * This module provides database connection setup only.
+ * It exports:
+ * - DRIZZLE_POOL: PostgreSQL connection pool
+ * - DRIZZLE_DB: Drizzle database instance
+ * - DatabaseService: Service for accessing the database
+ *
+ * NOTE: Schema definitions are currently in ./schema.ts but will be moved
+ * to module-specific ORM entities in Phase 2+ of the refactoring.
+ * Each module will define its own ORM entities in:
+ * src/modules/<module-name>/infrastructure/persistence/orm-entities/
+ */
+
 import { Module } from '@nestjs/common';
 import { ConfigModule, ConfigService } from '@nestjs/config';
 import { drizzle } from 'drizzle-orm/node-postgres';

@@ -1,3 +1,10 @@
+/**
+ * Database Service
+ *
+ * Provides access to the Drizzle database instance and connection pool.
+ * This service handles connection lifecycle management.
+ */
+
 import { Inject, Injectable, OnModuleDestroy } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { drizzle } from 'drizzle-orm/node-postgres';

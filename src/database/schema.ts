@@ -1,3 +1,17 @@
+/**
+ * Database Schema Definitions
+ *
+ * NOTE: This file is temporary and will be refactored in Phase 2+.
+ * Schema definitions will be moved to module-specific ORM entities:
+ * - src/modules/users/infrastructure/persistence/orm-entities/
+ * - src/modules/job-profiles/infrastructure/persistence/orm-entities/
+ * - src/modules/interview-sessions/infrastructure/persistence/orm-entities/
+ * - src/modules/interview-reports/infrastructure/persistence/orm-entities/
+ * - src/modules/question-pool/infrastructure/persistence/orm-entities/
+ *
+ * The database module will then aggregate schemas from all modules.
+ */
+
 import {
   jsonb,
   pgTable,
