@@ -43,7 +43,7 @@ npm run health           # curl localhost:3000/health
 
 The codebase follows a modular monolith architecture with CQRS pattern using `@nestjs/cqrs`. Each module is structured as:
 
-```
+```txt
 src/modules/{module-name}/
 ├── application/           # Use cases
 │   ├── commands/          # Write operations
@@ -68,12 +68,14 @@ Controllers use `QueryBus` and `CommandBus` for all operations instead of direct
 ### Path Aliases
 
 Configured in `tsconfig.json`:
+
 - `@/*` → `src/*`
 - `@modules/*` → `src/modules/*`
 
 ### Database Schema
 
 Schema is defined in `src/database/schema.ts` using Drizzle ORM. Tables:
+
 - `users` - User accounts (linked to Supabase identity)
 - `job_profiles` - Parsed job descriptions with competencies
 - `interview_sessions` - Interview session state and scores
@@ -83,6 +85,7 @@ Schema is defined in `src/database/schema.ts` using Drizzle ORM. Tables:
 ### Environment Variables
 
 Copy `.env.example` to `.env` and configure:
+
 - `SUPABASE_URL`, `SUPABASE_ANON_KEY`, `SUPABASE_SERVICE_ROLE_KEY` - Supabase auth
 - `DATABASE_URL` - PostgreSQL connection string
 - `CLAUDE_API_KEY` - Anthropic API key
