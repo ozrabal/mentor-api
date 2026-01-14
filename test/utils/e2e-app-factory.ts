@@ -9,7 +9,7 @@ import { Test, TestingModule } from '@nestjs/testing';
 import { INestApplication, ValidationPipe } from '@nestjs/common';
 import { ConfigModule, ConfigService } from '@nestjs/config';
 import { DocumentBuilder, SwaggerModule } from '@nestjs/swagger';
-import { HttpExceptionFilter } from '@/common/filters/http-exception.filter';
+import { HttpExceptionFilter } from '../../src/common/filters/http-exception.filter';
 
 export interface E2ETestAppOptions {
   imports?: any[];
