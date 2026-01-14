@@ -5,18 +5,18 @@
  * This is the contract exposed to clients.
  */
 
-import { ApiProperty } from '@nestjs/swagger';
+import { ApiProperty } from "@nestjs/swagger";
 
 export class HealthResponseDto {
   @ApiProperty({
-    description: 'Health status of the API',
-    example: 'ok',
+    description: "Health status of the API",
+    example: "ok",
   })
   status: string;
 
   @ApiProperty({
-    description: 'ISO 8601 timestamp of the health check',
-    example: '2026-01-15T10:30:00.000Z',
+    description: "ISO 8601 timestamp of the health check",
+    example: "2026-01-15T10:30:00.000Z",
   })
   timestamp: string;
 

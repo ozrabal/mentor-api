@@ -5,19 +5,19 @@
  * This tests the query handler in isolation.
  */
 
-import { GetHealthHandler } from './get-health.handler';
-import { GetHealthQuery } from '../impl/get-health.query';
-import { HealthDto } from '../../dto/health.dto';
+import { HealthDto } from "../../dto/health.dto";
+import { GetHealthQuery } from "../impl/get-health.query";
+import { GetHealthHandler } from "./get-health.handler";
 
-describe('GetHealthHandler', () => {
+describe("GetHealthHandler", () => {
   let handler: GetHealthHandler;
 
   beforeEach(() => {
     handler = new GetHealthHandler();
   });
 
-  describe('execute', () => {
-    it('should return health status with timestamp', async () => {
+  describe("execute", () => {
+    it("should return health status with timestamp", async () => {
       // Arrange
       const query = new GetHealthQuery();
       const beforeTime = new Date();
@@ -27,12 +27,14 @@ describe('GetHealthHandler', () => {
 
       // Assert
       expect(result).toBeInstanceOf(HealthDto);
-      expect(result.status).toBe('ok');
+      expect(result.status).toBe("ok");
       expect(result.timestamp).toBeInstanceOf(Date);
-      expect(result.timestamp.getTime()).toBeGreaterThanOrEqual(beforeTime.getTime());
+      expect(result.timestamp.getTime()).toBeGreaterThanOrEqual(
+        beforeTime.getTime(),
+      );
     });
 
-    it('should return consistent status across multiple calls', async () => {
+    it("should return consistent status across multiple calls", async () => {
       // Arrange
       const query = new GetHealthQuery();
 
@@ -42,7 +44,7 @@ describe('GetHealthHandler', () => {
 
       // Assert
       expect(result1.status).toBe(result2.status);
-      expect(result1.status).toBe('ok');
+      expect(result1.status).toBe("ok");
     });
   });
 });

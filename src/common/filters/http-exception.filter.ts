@@ -1,13 +1,13 @@
 import {
-  ExceptionFilter,
-  Catch,
   ArgumentsHost,
+  Catch,
+  ExceptionFilter,
   HttpException,
   HttpStatus,
   Logger,
-} from '@nestjs/common';
-import { Request, Response } from 'express';
-import { ConfigService } from '@nestjs/config';
+} from "@nestjs/common";
+import { ConfigService } from "@nestjs/config";
+import { Request, Response } from "express";
 
 @Catch()
 export class HttpExceptionFilter implements ExceptionFilter {
@@ -28,42 +28,44 @@ export class HttpExceptionFilter implements ExceptionFilter {
     const message =
       exception instanceof HttpException
         ? exception.getResponse()
-        : 'Internal server error';
+        : "Internal server error";
 
     // Extract message from exception response
     const errorMessage =
-      typeof message === 'string'
+      typeof message === "string"
         ? message
         : (message as { message?: string | string[] }).message
-        ? Array.isArray((message as { message: string[] }).message)
-          ? (message as { message: string[] }).message.join(', ')
-          : (message as { message: string }).message
-        : 'An error occurred';
+          ? Array.isArray((message as { message: string[] }).message)
+            ? (message as { message: string[] }).message.join(", ")
+            : (message as { message: string }).message
+          : "An error occurred";
 
     const errorResponse = {
-      statusCode: status,
-      message: errorMessage,
       error:
         exception instanceof HttpException
           ? exception.name
-          : 'Internal Server Error',
-      timestamp: new Date().toISOString(),
+          : "Internal Server Error",
+      message: errorMessage,
       path: request.url,
+      statusCode: status,
+      timestamp: new Date().toISOString(),
     };
 
     // Log error with context
     const logContext = {
-      statusCode: status,
-      path: request.url,
-      method: request.method,
-      userId: (request as any).user?.id,
       body: request.body,
+      method: request.method,
+      path: request.url,
+      statusCode: status,
+      userId: (request as any).user?.id,
     };
 
     if (status >= 500) {
       this.logger.error(
         `${request.method} ${request.url}`,
-        exception instanceof Error ? exception.stack : JSON.stringify(exception),
+        exception instanceof Error
+          ? exception.stack
+          : JSON.stringify(exception),
         JSON.stringify(logContext),
       );
     } else {
@@ -74,14 +76,10 @@ export class HttpExceptionFilter implements ExceptionFilter {
     }
 
     // Don't expose stack traces in production
-    if (
-      this.configService.get('NODE_ENV') === 'production' &&
-      status >= 500
-    ) {
-      errorResponse.message = 'Internal server error';
+    if (this.configService.get("NODE_ENV") === "production" && status >= 500) {
+      errorResponse.message = "Internal server error";
     }
 
     response.status(status).json(errorResponse);
   }
 }
-

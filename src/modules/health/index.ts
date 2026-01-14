@@ -5,5 +5,5 @@
  * Other modules should only import from public/ if needed.
  */
 
-export * from './health.module';
-export * from './public';
+export * from "./health.module";
+export * from "./public";

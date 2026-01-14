@@ -5,14 +5,15 @@
  * This service handles connection lifecycle management.
  */
 
-import { Inject, Injectable, OnModuleDestroy } from '@nestjs/common';
-import { ConfigService } from '@nestjs/config';
-import { drizzle } from 'drizzle-orm/node-postgres';
-import { Pool } from 'pg';
-import * as schema from './schema';
+import { Inject, Injectable, OnModuleDestroy } from "@nestjs/common";
+import { ConfigService } from "@nestjs/config";
+import { drizzle } from "drizzle-orm/node-postgres";
+import { Pool } from "pg";
 
-export const DRIZZLE_POOL = 'DRIZZLE_POOL';
-export const DRIZZLE_DB = 'DRIZZLE_DB';
+import * as schema from "./schema";
+
+export const DRIZZLE_POOL = "DRIZZLE_POOL";
+export const DRIZZLE_DB = "DRIZZLE_DB";
 
 export type DrizzleDb = ReturnType<typeof drizzle<typeof schema>>;
 
@@ -32,5 +33,3 @@ export class DatabaseService implements OnModuleDestroy {
     await this.pool.end();
   }
 }
-
-

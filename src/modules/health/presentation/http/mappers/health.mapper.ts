@@ -5,8 +5,8 @@
  * This ensures clean separation between layers.
  */
 
-import { HealthDto } from '../../../application/dto/health.dto';
-import { HealthResponseDto } from '../dto/health-response.dto';
+import { HealthDto } from "../../../application/dto/health.dto";
+import { HealthResponseDto } from "../dto/health-response.dto";
 
 export class HealthMapper {
   static toResponseDto(dto: HealthDto): HealthResponseDto {

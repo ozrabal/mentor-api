@@ -5,32 +5,33 @@
  * This controller is thin - it only orchestrates and maps.
  */
 
-import { Controller, Get } from '@nestjs/common';
-import { QueryBus } from '@nestjs/cqrs';
-import { ApiTags, ApiOperation, ApiResponse } from '@nestjs/swagger';
-import { GetHealthQuery } from '../../../application/queries/impl/get-health.query';
-import { HealthMapper } from '../mappers/health.mapper';
-import { HealthResponseDto } from '../dto/health-response.dto';
+import { Controller, Get } from "@nestjs/common";
+import { QueryBus } from "@nestjs/cqrs";
+import { ApiOperation, ApiResponse, ApiTags } from "@nestjs/swagger";
 
-@ApiTags('health')
-@Controller('health')
+import { GetHealthQuery } from "../../../application/queries/impl/get-health.query";
+import { HealthResponseDto } from "../dto/health-response.dto";
+import { HealthMapper } from "../mappers/health.mapper";
+
+@ApiTags("health")
+@Controller("health")
 export class HealthController {
   constructor(private readonly queryBus: QueryBus) {}
 
-  @Get()
   @ApiOperation({
-    summary: 'Health check',
-    description: 'Returns the current health status of the API',
+    description: "Returns the current health status of the API",
+    summary: "Health check",
   })
   @ApiResponse({
+    description: "API is healthy",
     status: 200,
-    description: 'API is healthy',
     type: HealthResponseDto,
   })
   @ApiResponse({
+    description: "Internal server error",
     status: 500,
-    description: 'Internal server error',
   })
+  @Get()
   async getHealth(): Promise<HealthResponseDto> {
     const healthDto = await this.queryBus.execute(new GetHealthQuery());
     return HealthMapper.toResponseDto(healthDto);
