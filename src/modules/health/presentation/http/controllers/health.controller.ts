@@ -9,12 +9,14 @@ import { Controller, Get } from "@nestjs/common";
 import { QueryBus } from "@nestjs/cqrs";
 import { ApiOperation, ApiResponse, ApiTags } from "@nestjs/swagger";
 
+import { HealthDto } from "@/modules/health/application/dto/health.dto";
+
 import { GetHealthQuery } from "../../../application/queries/impl/get-health.query";
 import { HealthResponseDto } from "../dto/health-response.dto";
 import { HealthMapper } from "../mappers/health.mapper";
 
 @ApiTags("health")
-@Controller("health")
+@Controller("api/v1/health")
 export class HealthController {
   constructor(private readonly queryBus: QueryBus) {}
 
@@ -34,6 +36,6 @@ export class HealthController {
   @Get()
   async getHealth(): Promise<HealthResponseDto> {
     const healthDto = await this.queryBus.execute(new GetHealthQuery());
-    return HealthMapper.toResponseDto(healthDto);
+    return HealthMapper.toResponseDto(healthDto as HealthDto);
   }
 }
