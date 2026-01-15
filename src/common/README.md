@@ -27,7 +27,7 @@ The `common/` module provides:
 
 ## Structure
 
-```
+```txt
 common/
 ├── decorators/          # Parameter decorators
 ├── filters/             # Exception filters
