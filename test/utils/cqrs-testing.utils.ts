@@ -1,21 +1,21 @@
 /**
  * CQRS Test Utilities
- * 
+ *
  * Provides utilities for testing CQRS commands and queries:
  * - Mock CommandBus and QueryBus
  * - Test helpers for handlers
  * - Command/Query testing patterns
  */
 
-import { CommandBus, QueryBus } from '@nestjs/cqrs';
-import { Test, TestingModule } from '@nestjs/testing';
+import { CommandBus, QueryBus } from "@nestjs/cqrs";
+import { Test, TestingModule } from "@nestjs/testing";
 
 export interface MockCommandBus {
-  execute: jest.MockedFunction<CommandBus['execute']>;
+  execute: jest.MockedFunction<CommandBus["execute"]>;
 }
 
 export interface MockQueryBus {
-  execute: jest.MockedFunction<QueryBus['execute']>;
+  execute: jest.MockedFunction<QueryBus["execute"]>;
 }
 
 /**
@@ -77,8 +77,8 @@ export class CQRSTestingModuleBuilder {
 
   async build(): Promise<TestingModule> {
     return Test.createTestingModule({
-      imports: this.imports,
       controllers: this.controllers,
+      imports: this.imports,
       providers: this.providers,
     }).compile();
   }
@@ -98,6 +98,8 @@ export abstract class CommandHandlerTestBase<TCommand, TResult> {
 
   async executeCommand(command?: TCommand): Promise<TResult> {
     const cmd = command || this.createValidCommand();
+    // @ts-expect-error - handler.execute returns any in test context
+    // eslint-disable-next-line @typescript-eslint/no-unsafe-return
     return this.handler.execute(cmd);
   }
 
@@ -121,6 +123,8 @@ export abstract class QueryHandlerTestBase<TQuery, TResult> {
 
   async executeQuery(query?: TQuery): Promise<TResult> {
     const q = query || this.createValidQuery();
+    // @ts-expect-error - handler.execute returns any in test context
+    // eslint-disable-next-line @typescript-eslint/no-unsafe-return
     return this.handler.execute(q);
   }
 
@@ -136,11 +140,11 @@ export abstract class QueryHandlerTestBase<TQuery, TResult> {
 export class ControllerTestHelper {
   static async createTestingModule(
     Controller: any,
-    mockBuses: { commandBus?: boolean; queryBus?: boolean } = {}
+    mockBuses: { commandBus?: boolean; queryBus?: boolean } = {},
   ): Promise<{
-    module: TestingModule;
-    controller: any;
     commandBus?: MockCommandBus;
+    controller: any;
+    module: TestingModule;
     queryBus?: MockQueryBus;
   }> {
     const providers: any[] = [];
@@ -171,9 +175,9 @@ export class ControllerTestHelper {
     const controller = module.get(Controller);
 
     return {
-      module,
-      controller,
       commandBus: mockCommandBus,
+      controller,
+      module,
       queryBus: mockQueryBus,
     };
   }

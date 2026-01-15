@@ -1,6 +1,6 @@
 /**
  * Repository Mock Utilities
- * 
+ *
  * Provides utilities for mocking repository interfaces:
  * - Mock repository creation
  * - Common repository method mocks
@@ -11,10 +11,10 @@
  * Generic repository mock interface
  */
 export interface MockRepository<T> {
-  save: jest.MockedFunction<(entity: T) => Promise<void>>;
-  findById: jest.MockedFunction<(id: any) => Promise<T | null>>;
-  findAll?: jest.MockedFunction<() => Promise<T[]>>;
   delete?: jest.MockedFunction<(id: any) => Promise<void>>;
+  findAll?: jest.MockedFunction<() => Promise<T[]>>;
+  findById: jest.MockedFunction<(id: any) => Promise<null | T>>;
+  save: jest.MockedFunction<(entity: T) => Promise<void>>;
   update?: jest.MockedFunction<(id: any, entity: Partial<T>) => Promise<void>>;
 }
 
@@ -23,10 +23,10 @@ export interface MockRepository<T> {
  */
 export function createMockRepository<T>(): MockRepository<T> {
   return {
-    save: jest.fn(),
-    findById: jest.fn(),
-    findAll: jest.fn(),
     delete: jest.fn(),
+    findAll: jest.fn(),
+    findById: jest.fn(),
+    save: jest.fn(),
     update: jest.fn(),
   };
 }
@@ -40,7 +40,7 @@ export class RepositoryTestHelper<T> {
   /**
    * Setup the repository to return an entity when findById is called
    */
-  setupFindById(id: any, entity: T | null): this {
+  setupFindById(id: any, entity: null | T): this {
     this.mockRepository.findById.mockResolvedValue(entity);
     return this;
   }
@@ -120,6 +120,8 @@ export class RepositoryTestHelper<T> {
 /**
  * Creates a repository test helper
  */
-export function createRepositoryTestHelper<T>(mockRepository: MockRepository<T>): RepositoryTestHelper<T> {
+export function createRepositoryTestHelper<T>(
+  mockRepository: MockRepository<T>,
+): RepositoryTestHelper<T> {
   return new RepositoryTestHelper(mockRepository);
 }

@@ -1,6 +1,7 @@
 // Global unit test setup
-import 'reflect-metadata';
-import '../utils/test-matchers';
+import "reflect-metadata";
+
+import "../utils/test-matchers";
 
 // Mock console methods in tests to reduce noise
 const originalConsoleLog = console.log;

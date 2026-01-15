@@ -21,7 +21,8 @@ export default tseslint.config(
       },
       sourceType: 'commonjs',
       parserOptions: {
-        projectService: true,
+        // Use explicit TS project configs for type-aware linting
+        project: ['./tsconfig.json', './tsconfig.eslint.json'],
         tsconfigRootDir: import.meta.dirname,
       },
     },
@@ -51,9 +52,20 @@ export default tseslint.config(
     },
   },
   {
-      files: ['**/*.test.{js,ts,jsx,tsx}', '**/*.spec.{js,ts,jsx,tsx}'],
+      files: ['**/*.test.{js,ts,jsx,tsx}', '**/*.spec.{js,ts,jsx,tsx}', 'test/**/*.ts'],
       rules: {
         '@typescript-eslint/unbound-method': 'off',
+        '@typescript-eslint/require-await': 'off',
+        '@typescript-eslint/no-unsafe-member-access': 'off',
+        '@typescript-eslint/no-unsafe-call': 'off',
+        '@typescript-eslint/no-unsafe-argument': 'off',
+        '@typescript-eslint/no-unused-vars': 'off',
+        'perfectionist/sort-imports': 'off',
+        'perfectionist/sort-objects': 'off',
+        'perfectionist/sort-interfaces': 'off',
+        'perfectionist/sort-object-types': 'off',
+        'perfectionist/sort-union-types': 'off',
+        'perfectionist/sort-exports': 'off',
       },
     },
 );

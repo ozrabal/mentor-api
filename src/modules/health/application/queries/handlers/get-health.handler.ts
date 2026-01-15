@@ -12,7 +12,7 @@ import { GetHealthQuery } from "../impl/get-health.query";
 
 @QueryHandler(GetHealthQuery)
 export class GetHealthHandler implements IQueryHandler<GetHealthQuery> {
-  async execute(query: GetHealthQuery): Promise<HealthDto> {
+  async execute(_query: GetHealthQuery): Promise<HealthDto> {
     return new HealthDto("ok", new Date());
   }
 }

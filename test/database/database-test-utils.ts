@@ -1,16 +1,17 @@
 /**
  * Database Test Utilities
- * 
+ *
  * Provides utilities for database testing including:
  * - Test database connection setup
  * - Transaction-based test isolation
  * - Database cleanup and seeding
  */
 
-import { ConfigService } from '@nestjs/config';
-import { drizzle, NodePgDatabase } from 'drizzle-orm/node-postgres';
-import { Pool, PoolClient } from 'pg';
-import * as schema from '@/database/schema';
+import { ConfigService } from "@nestjs/config";
+import { drizzle, NodePgDatabase } from "drizzle-orm/node-postgres";
+import { Pool, PoolClient } from "pg";
+
+import * as schema from "@/database/schema";
 
 export type TestDatabase = NodePgDatabase<typeof schema>;
 
@@ -24,10 +25,13 @@ export class DatabaseTestUtils {
       return this.db;
     }
 
-    const testDatabaseUrl = process.env.TEST_DATABASE_URL || process.env.DATABASE_URL;
-    
+    const testDatabaseUrl =
+      process.env.TEST_DATABASE_URL || process.env.DATABASE_URL;
+
     if (!testDatabaseUrl) {
-      throw new Error('TEST_DATABASE_URL or DATABASE_URL must be set for testing');
+      throw new Error(
+        "TEST_DATABASE_URL or DATABASE_URL must be set for testing",
+      );
     }
 
     this.pool = new Pool({
@@ -41,10 +45,10 @@ export class DatabaseTestUtils {
 
   static async getTestTransaction(testId: string): Promise<TestDatabase> {
     const client = await this.pool.connect();
-    await client.query('BEGIN');
-    
+    await client.query("BEGIN");
+
     this.clients.set(testId, client);
-    
+
     // Return a database instance wrapped in transaction
     return drizzle(client, { schema });
   }
@@ -52,7 +56,7 @@ export class DatabaseTestUtils {
   static async rollbackTestTransaction(testId: string): Promise<void> {
     const client = this.clients.get(testId);
     if (client) {
-      await client.query('ROLLBACK');
+      await client.query("ROLLBACK");
       client.release();
       this.clients.delete(testId);
     }
@@ -73,10 +77,13 @@ export class DatabaseTestUtils {
     // Close any remaining transactions
     for (const [testId, client] of this.clients.entries()) {
       try {
-        await client.query('ROLLBACK');
+        await client.query("ROLLBACK");
         client.release();
       } catch (error) {
-        console.warn(`Failed to rollback transaction for test ${testId}:`, error);
+        console.warn(
+          `Failed to rollback transaction for test ${testId}:`,
+          error,
+        );
       }
     }
     this.clients.clear();
@@ -90,8 +97,9 @@ export class DatabaseTestUtils {
     return {
       get: (key: string) => {
         const env = {
-          DATABASE_URL: process.env.TEST_DATABASE_URL || process.env.DATABASE_URL,
-          NODE_ENV: 'test',
+          DATABASE_URL:
+            process.env.TEST_DATABASE_URL || process.env.DATABASE_URL,
+          NODE_ENV: "test",
         };
         return env[key as keyof typeof env];
       },

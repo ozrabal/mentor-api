@@ -57,6 +57,7 @@ export class HttpExceptionFilter implements ExceptionFilter {
       method: request.method,
       path: request.url,
       statusCode: status,
+      // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
       userId: (request as any).user?.id,
     };
 

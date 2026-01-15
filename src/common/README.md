@@ -5,6 +5,7 @@ This module contains **shared utilities** that are used across the application b
 ## Purpose
 
 The `common/` module provides:
+
 - **Decorators**: Reusable parameter decorators (e.g., `@CurrentUser`)
 - **Filters**: HTTP exception filters and other cross-cutting concerns
 - **Utilities**: Framework-level helpers (NestJS, Express, etc.)
@@ -12,11 +13,13 @@ The `common/` module provides:
 ## Rules
 
 ✅ **DO:**
+
 - Add framework-level utilities (decorators, filters, interceptors, guards)
 - Keep utilities generic and reusable
 - Ensure utilities are framework-aware (NestJS, HTTP, etc.)
 
 ❌ **DON'T:**
+
 - Add domain logic (entities, value objects, business rules)
 - Add application logic (commands, queries, handlers)
 - Add module-specific code
@@ -34,12 +37,14 @@ common/
 ## Examples
 
 ### ✅ Good: Framework Utility
+
 ```typescript
 // common/decorators/current-user.decorator.ts
 export const CurrentUser = createParamDecorator(...)
 ```
 
 ### ❌ Bad: Domain Logic
+
 ```typescript
 // ❌ DON'T DO THIS
 export class User { ... }  // Domain entity belongs in modules/users/domain/

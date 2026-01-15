@@ -1,20 +1,20 @@
 /**
  * E2E Test Utilities
- * 
+ *
  * Common utilities for e2e testing:
  * - HTTP request helpers
  * - Response validation
  * - Test data management
  */
 
-import { INestApplication } from '@nestjs/common';
-import request from 'supertest';
-import { Response } from 'supertest';
+import { INestApplication } from "@nestjs/common";
+import request from "supertest";
+import { Response } from "supertest";
 
 export interface ApiResponse<T = any> {
   body: T;
-  status: number;
   headers: Record<string, string>;
+  status: number;
 }
 
 /**
@@ -26,15 +26,18 @@ export class ApiTestClient {
   /**
    * GET request helper
    */
-  async get<T = any>(path: string, headers: Record<string, string> = {}): Promise<ApiResponse<T>> {
+  async get<T = any>(
+    path: string,
+    headers: Record<string, string> = {},
+  ): Promise<ApiResponse<T>> {
     const response = await request(this.app.getHttpServer())
       .get(path)
       .set(headers);
 
     return {
       body: response.body,
-      status: response.status,
       headers: response.headers,
+      status: response.status,
     };
   }
 
@@ -42,9 +45,9 @@ export class ApiTestClient {
    * POST request helper
    */
   async post<T = any>(
-    path: string, 
-    body: any = {}, 
-    headers: Record<string, string> = {}
+    path: string,
+    body: any = {},
+    headers: Record<string, string> = {},
   ): Promise<ApiResponse<T>> {
     const response = await request(this.app.getHttpServer())
       .post(path)
@@ -53,8 +56,8 @@ export class ApiTestClient {
 
     return {
       body: response.body,
-      status: response.status,
       headers: response.headers,
+      status: response.status,
     };
   }
 
@@ -62,9 +65,9 @@ export class ApiTestClient {
    * PUT request helper
    */
   async put<T = any>(
-    path: string, 
-    body: any = {}, 
-    headers: Record<string, string> = {}
+    path: string,
+    body: any = {},
+    headers: Record<string, string> = {},
   ): Promise<ApiResponse<T>> {
     const response = await request(this.app.getHttpServer())
       .put(path)
@@ -73,8 +76,8 @@ export class ApiTestClient {
 
     return {
       body: response.body,
-      status: response.status,
       headers: response.headers,
+      status: response.status,
     };
   }
 
@@ -82,8 +85,8 @@ export class ApiTestClient {
    * DELETE request helper
    */
   async delete<T = any>(
-    path: string, 
-    headers: Record<string, string> = {}
+    path: string,
+    headers: Record<string, string> = {},
   ): Promise<ApiResponse<T>> {
     const response = await request(this.app.getHttpServer())
       .delete(path)
@@ -91,8 +94,8 @@ export class ApiTestClient {
 
     return {
       body: response.body,
-      status: response.status,
       headers: response.headers,
+      status: response.status,
     };
   }
 
@@ -111,7 +114,10 @@ export class ResponseValidator {
   /**
    * Validates successful response
    */
-  static expectSuccess<T>(response: ApiResponse<T>, expectedStatus: number = 200): T {
+  static expectSuccess<T>(
+    response: ApiResponse<T>,
+    expectedStatus: number = 200,
+  ): T {
     expect(response.status).toBe(expectedStatus);
     expect(response.body).toBeDefined();
     return response.body;
@@ -121,24 +127,27 @@ export class ResponseValidator {
    * Validates error response
    */
   static expectError(
-    response: ApiResponse, 
-    expectedStatus: number, 
-    expectedMessage?: string
+    response: ApiResponse,
+    expectedStatus: number,
+    expectedMessage?: string,
   ): any {
     expect(response.status).toBe(expectedStatus);
     expect(response.body).toBeDefined();
-    
+
     if (expectedMessage) {
       expect(response.body.message).toContain(expectedMessage);
     }
-    
+
     return response.body;
   }
 
   /**
    * Validates response headers
    */
-  static expectHeaders(response: ApiResponse, expectedHeaders: Record<string, string>): void {
+  static expectHeaders(
+    response: ApiResponse,
+    expectedHeaders: Record<string, string>,
+  ): void {
     Object.entries(expectedHeaders).forEach(([key, value]) => {
       expect(response.headers[key.toLowerCase()]).toMatch(new RegExp(value));
     });
@@ -148,19 +157,22 @@ export class ResponseValidator {
    * Validates response content type
    */
   static expectContentType(response: ApiResponse, contentType: string): void {
-    expect(response.headers['content-type']).toMatch(new RegExp(contentType));
+    expect(response.headers["content-type"]).toMatch(new RegExp(contentType));
   }
 
   /**
    * Validates JSON response structure
    */
-  static expectJsonStructure<T>(response: ApiResponse<T>, structure: Partial<T>): T {
+  static expectJsonStructure<T>(
+    response: ApiResponse<T>,
+    structure: Partial<T>,
+  ): T {
     const body = this.expectSuccess(response);
-    
-    Object.keys(structure).forEach(key => {
+
+    Object.keys(structure).forEach((key) => {
       expect(body).toHaveProperty(key);
     });
-    
+
     return body;
   }
 }
@@ -183,7 +195,7 @@ export class TestDataManager {
    */
   static async cleanup(): Promise<void> {
     const errors: Error[] = [];
-    
+
     for (const cleanupFn of this.cleanupFunctions) {
       try {
         await cleanupFn();
@@ -191,11 +203,11 @@ export class TestDataManager {
         errors.push(error as Error);
       }
     }
-    
+
     this.cleanupFunctions = [];
-    
+
     if (errors.length > 0) {
-      console.warn('Some cleanup functions failed:', errors);
+      console.warn("Some cleanup functions failed:", errors);
     }
   }
 

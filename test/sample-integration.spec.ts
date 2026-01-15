@@ -5,14 +5,19 @@
  * This is a reference implementation for future modules.
  */
 
-import { Test, TestingModule } from '@nestjs/testing';
-import { CqrsModule } from '@nestjs/cqrs';
-import { DRIZZLE_DB } from '@/database/database.service';
-import { TestDatabaseModule } from '../database/test-database.module';
-import { DatabaseTestUtils, TestDatabase } from '../database/database-test-utils';
-import { UserFactory } from '../database/test-data-factory';
+import { CqrsModule } from "@nestjs/cqrs";
+import { Test, TestingModule } from "@nestjs/testing";
 
-describe('Sample Integration Test (Integration)', () => {
+import { DRIZZLE_DB } from "@/database/database.service";
+
+import {
+  DatabaseTestUtils,
+  TestDatabase,
+} from "../database/database-test-utils";
+import { UserFactory } from "../database/test-data-factory";
+import { TestDatabaseModule } from "../database/test-database.module";
+
+describe("Sample Integration Test (Integration)", () => {
   let module: TestingModule;
   let db: TestDatabase;
   let testId: string;
@@ -38,7 +43,7 @@ describe('Sample Integration Test (Integration)', () => {
   beforeEach(async () => {
     // Create unique test identifier
     testId = `test-${Date.now()}-${Math.random()}`;
-    
+
     // Setup transaction for test isolation
     db = await DatabaseTestUtils.getTestTransaction(testId);
   });
@@ -48,14 +53,14 @@ describe('Sample Integration Test (Integration)', () => {
     await DatabaseTestUtils.rollbackTestTransaction(testId);
   });
 
-  describe('sample test scenarios', () => {
-    it('should demonstrate database integration testing', async () => {
+  describe("sample test scenarios", () => {
+    it("should demonstrate database integration testing", async () => {
       // Arrange
       const userData = UserFactory.createUserData();
 
       // This is a sample showing how you would test repository methods
       // when they are implemented in actual modules
-      
+
       // Act - Example of what you would do:
       // const user = User.createNew(userData.email, userData.identityId);
       // await userRepository.save(user);
@@ -67,34 +72,34 @@ describe('Sample Integration Test (Integration)', () => {
 
       // For now, just verify the test setup works
       expect(db).toBeDefined();
-      expect(userData).toHaveProperty('email');
-      expect(userData).toHaveProperty('identityId');
+      expect(userData).toHaveProperty("email");
+      expect(userData).toHaveProperty("identityId");
     });
 
-    it('should demonstrate test data factory usage', async () => {
+    it("should demonstrate test data factory usage", async () => {
       // Arrange
       const users = UserFactory.createMultipleUsers(3);
 
       // Assert
       expect(users).toHaveLength(3);
-      users.forEach(user => {
+      users.forEach((user) => {
         expect(user.email).toBeDefined();
         expect(user.identityId).toBeDefined();
         expect(user.createdAt).toBeInstanceOf(Date);
       });
     });
 
-    it('should demonstrate transaction isolation', async () => {
+    it("should demonstrate transaction isolation", async () => {
       // This test verifies that each test runs in its own transaction
       // and changes don't affect other tests
-      
+
       // Arrange & Act
       const testData = { testId, timestamp: new Date() };
-      
+
       // Assert
       expect(testData.testId).toBe(testId);
       expect(testData.timestamp).toBeInstanceOf(Date);
-      
+
       // Each test gets a fresh database state
       // Changes in this test won't be visible in other tests
     });
