@@ -12,6 +12,7 @@ import { GetHealthQuery } from "../impl/get-health.query";
 
 @QueryHandler(GetHealthQuery)
 export class GetHealthHandler implements IQueryHandler<GetHealthQuery> {
+  // eslint-disable-next-line @typescript-eslint/require-await
   async execute(_query: GetHealthQuery): Promise<HealthDto> {
     return new HealthDto("ok", new Date());
   }

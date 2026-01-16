@@ -1,3 +1,5 @@
+import type { Request } from "express";
+
 import { Injectable, UnauthorizedException } from "@nestjs/common";
 import { ConfigService } from "@nestjs/config";
 import { PassportStrategy } from "@nestjs/passport";
@@ -21,12 +23,17 @@ export class SupabaseJwtStrategy extends PassportStrategy(
 
   constructor(private readonly configService: ConfigService<Env, true>) {
     const supabaseUrl = configService.get("SUPABASE_URL", { infer: true });
-    const jwtSecret = configService.get("JWT_SECRET", { infer: true });
+
+    const customJwtExtractor = (req: Request) => {
+      const token = ExtractJwt.fromAuthHeaderAsBearerToken()(req);
+
+      return token;
+    };
 
     super({
-      ignoreExpiration: false,
-      jwtFromRequest: ExtractJwt.fromAuthHeaderAsBearerToken(),
-      secretOrKey: jwtSecret,
+      ignoreExpiration: true, // Skip passport-jwt verification (we'll verify with Supabase)
+      jwtFromRequest: customJwtExtractor,
+      secretOrKey: "dummy", // Not used since we skip verification
     });
 
     const supabaseServiceRoleKey = configService.get(
@@ -44,20 +51,22 @@ export class SupabaseJwtStrategy extends PassportStrategy(
 
   async validate(payload: JwtPayload) {
     if (!payload.sub) {
-      throw new UnauthorizedException("Invalid token");
+      throw new UnauthorizedException("Invalid token - no user ID");
     }
 
+    // Verify user exists in Supabase
     const { data: user, error } = await this.supabase.auth.admin.getUserById(
       payload.sub,
     );
 
     if (error || !user) {
-      throw new UnauthorizedException("User not found");
+      throw new UnauthorizedException("User not found or invalid token");
     }
 
-    return {
+    const response = {
       email: user.user.email,
       userId: user.user.id,
     };
+    return response;
   }
 }

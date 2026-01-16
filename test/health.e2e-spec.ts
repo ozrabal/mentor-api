@@ -7,11 +7,17 @@
  * NOTE: The HealthController is mounted with the `/api/v1` prefix
  * (see controller decorator). Keep these paths in sync to avoid 404s
  * if the route prefix changes in the controller.
+ *
+ * NOTE: Health endpoint is now protected with JWT authentication.
+ * Tests mock the guard to bypass real Supabase authentication.
  */
 
-import { INestApplication } from "@nestjs/common";
+import { ExecutionContext, INestApplication } from "@nestjs/common";
+import { ConfigModule } from "@nestjs/config";
 import { CqrsModule } from "@nestjs/cqrs";
+import { Test } from "@nestjs/testing";
 
+import { SupabaseJwtGuard } from "../src/modules/auth/public";
 import { HealthModule } from "../src/modules/health/health.module";
 import { E2ETestAppFactory } from "./utils/e2e-app-factory";
 import { ApiTestClient, ResponseValidator } from "./utils/e2e-test.utils";
@@ -21,10 +27,34 @@ describe("Health (e2e)", () => {
   let apiClient: ApiTestClient;
 
   beforeAll(async () => {
-    app = await E2ETestAppFactory.create({
-      enableValidation: true,
-      imports: [CqrsModule, HealthModule],
-    });
+    // Mock the guard to bypass authentication in E2E tests
+    const mockGuard = {
+      canActivate: (context: ExecutionContext) => {
+        const request = context.switchToHttp().getRequest();
+        request.user = {
+          email: "test@example.com",
+          userId: "test-user-id",
+        };
+        return true;
+      },
+    };
+
+    const moduleFixture = await Test.createTestingModule({
+      imports: [
+        ConfigModule.forRoot({
+          envFilePath: [".env.test", ".env"],
+          isGlobal: true,
+        }),
+        CqrsModule,
+        HealthModule,
+      ],
+    })
+      .overrideGuard(SupabaseJwtGuard)
+      .useValue(mockGuard)
+      .compile();
+
+    app = moduleFixture.createNestApplication();
+    await app.init();
 
     apiClient = new ApiTestClient(app);
   });

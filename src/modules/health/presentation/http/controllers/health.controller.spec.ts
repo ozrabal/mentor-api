@@ -5,8 +5,11 @@
  * Tests HTTP endpoint orchestration and mapping.
  */
 
+import { ExecutionContext } from "@nestjs/common";
 import { QueryBus } from "@nestjs/cqrs";
 import { Test, TestingModule } from "@nestjs/testing";
+
+import { SupabaseJwtGuard } from "@/modules/auth/public";
 
 import { HealthDto } from "../../../application/dto/health.dto";
 import { GetHealthQuery } from "../../../application/queries/impl/get-health.query";
@@ -22,6 +25,15 @@ describe("HealthController", () => {
       execute: jest.fn(),
     };
 
+    // Mock the guard to bypass authentication in unit tests
+    const mockGuard = {
+      canActivate: jest.fn((context: ExecutionContext) => {
+        const request = context.switchToHttp().getRequest();
+        request.user = { userId: "test-user-id", email: "test@example.com" };
+        return true;
+      }),
+    };
+
     const module: TestingModule = await Test.createTestingModule({
       controllers: [HealthController],
       providers: [
@@ -30,7 +42,10 @@ describe("HealthController", () => {
           useValue: mockQueryBus,
         },
       ],
-    }).compile();
+    })
+      .overrideGuard(SupabaseJwtGuard)
+      .useValue(mockGuard)
+      .compile();
 
     controller = module.get<HealthController>(HealthController);
     queryBus = module.get(QueryBus);
