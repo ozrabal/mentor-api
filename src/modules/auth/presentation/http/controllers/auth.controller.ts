@@ -5,22 +5,37 @@
  * This controller is thin - it only orchestrates and maps.
  */
 
-import { Body, Controller, Post } from "@nestjs/common";
-import { CommandBus } from "@nestjs/cqrs";
-import { ApiOperation, ApiResponse, ApiTags } from "@nestjs/swagger";
+import { Body, Controller, Get, Post, UseGuards } from "@nestjs/common";
+import { CommandBus, QueryBus } from "@nestjs/cqrs";
+import {
+  ApiBearerAuth,
+  ApiOperation,
+  ApiResponse,
+  ApiTags,
+} from "@nestjs/swagger";
+
+import { CurrentUser } from "@/common/decorators/current-user.decorator";
 
 import { LoginCommand } from "../../../application/commands/impl/login.command";
 import { RegisterCommand } from "../../../application/commands/impl/register.command";
 import { AuthResultDto } from "../../../application/dto/auth-result.dto";
+import { CurrentUserDto } from "../../../application/dto/current-user.dto";
+import { GetCurrentUserQuery } from "../../../application/queries/impl/get-current-user.query";
+import { SupabaseJwtGuard } from "../../../guards/supabase-jwt.guard";
 import { AuthResponseDto } from "../dto/auth-response.dto";
+import { CurrentUserResponseDto } from "../dto/current-user-response.dto";
 import { LoginRequestDto } from "../dto/login-request.dto";
 import { RegisterRequestDto } from "../dto/register-request.dto";
 import { AuthMapper } from "../mappers/auth.mapper";
+import { CurrentUserMapper } from "../mappers/current-user.mapper";
 
 @ApiTags("auth")
 @Controller("api/v1/auth")
 export class AuthController {
-  constructor(private readonly commandBus: CommandBus) {}
+  constructor(
+    private readonly commandBus: CommandBus,
+    private readonly queryBus: QueryBus,
+  ) {}
 
   @ApiOperation({
     description: "Register a new user account",
@@ -71,5 +86,36 @@ export class AuthController {
       new LoginCommand(dto.email, dto.password),
     );
     return AuthMapper.toResponseDto(result);
+  }
+
+  @ApiBearerAuth("JWT-auth")
+  @ApiOperation({
+    description: "Get current authenticated user information",
+    summary: "Get current user",
+  })
+  @ApiResponse({
+    description: "User information retrieved successfully",
+    status: 200,
+    type: CurrentUserResponseDto,
+  })
+  @ApiResponse({
+    description: "Unauthorized - invalid or missing JWT token",
+    status: 401,
+  })
+  @Get("me")
+  @UseGuards(SupabaseJwtGuard)
+  async getCurrentUser(
+    @CurrentUser() user: { email: string; sub?: string; userId?: string },
+  ): Promise<CurrentUserResponseDto> {
+    // The guard returns the decoded JWT payload when using dummy secret
+    // Extract userId from 'sub' field (JWT payload) or 'userId' field (validated user)
+    const userId = user.userId || user.sub || "";
+    const email = user.email;
+
+    const result = await this.queryBus.execute<
+      GetCurrentUserQuery,
+      CurrentUserDto
+    >(new GetCurrentUserQuery(userId, email));
+    return CurrentUserMapper.toResponseDto(result);
   }
 }

@@ -2,13 +2,19 @@
  * Auth E2E Tests
  *
  * End-to-end tests for the auth module HTTP endpoints.
- * Tests the complete request-response cycle with CommandBus mocked.
+ * Tests the complete request-response cycle with CommandBus and QueryBus mocked.
  */
 
-import { INestApplication } from "@nestjs/common";
-import { CommandBus } from "@nestjs/cqrs";
+import {
+  ExecutionContext,
+  INestApplication,
+  ValidationPipe,
+} from "@nestjs/common";
+import { CommandBus, CqrsModule, QueryBus } from "@nestjs/cqrs";
+import { Test } from "@nestjs/testing";
 
-import { AuthController } from "@/modules/auth/presentation/http/controllers/auth.controller";
+import { AuthController } from "../src/modules/auth/presentation/http/controllers/auth.controller";
+import { SupabaseJwtGuard } from "../src/modules/auth/guards/supabase-jwt.guard";
 
 import { E2ETestAppFactory } from "./utils/e2e-app-factory";
 import { ApiTestClient, ResponseValidator } from "./utils/e2e-test.utils";
@@ -17,22 +23,59 @@ describe("Auth (e2e)", () => {
   let app: INestApplication;
   let apiClient: ApiTestClient;
   let commandBusMock: { execute: jest.Mock };
+  let queryBusMock: { execute: jest.Mock };
 
   beforeAll(async () => {
     commandBusMock = {
       execute: jest.fn(),
     };
 
-    app = await E2ETestAppFactory.create({
+    queryBusMock = {
+      execute: jest.fn(),
+    };
+
+    // Mock the guard to bypass authentication in E2E tests
+    const mockGuard = {
+      canActivate: (context: ExecutionContext) => {
+        const request = context.switchToHttp().getRequest();
+        request.user = {
+          email: "test@example.com",
+          userId: "test-user-id",
+        };
+        return true;
+      },
+    };
+
+    const moduleFixture = await Test.createTestingModule({
       controllers: [AuthController],
-      enableValidation: true,
+      imports: [CqrsModule],
       providers: [
         {
           provide: CommandBus,
           useValue: commandBusMock,
         },
+        {
+          provide: QueryBus,
+          useValue: queryBusMock,
+        },
       ],
-    });
+    })
+      .overrideGuard(SupabaseJwtGuard)
+      .useValue(mockGuard)
+      .compile();
+
+    app = moduleFixture.createNestApplication();
+
+    // Apply global validation pipe
+    app.useGlobalPipes(
+      new ValidationPipe({
+        forbidNonWhitelisted: true,
+        transform: true,
+        whitelist: true,
+      }),
+    );
+
+    await app.init();
 
     apiClient = new ApiTestClient(app);
   });
@@ -115,6 +158,56 @@ describe("Auth (e2e)", () => {
 
       // Assert
       ResponseValidator.expectError(response, 400);
+    });
+  });
+
+  describe("/api/v1/auth/me (GET)", () => {
+    it("should return current user information", async () => {
+      // Arrange
+      queryBusMock.execute.mockResolvedValue({
+        email: "user@example.com",
+        userId: "a1b2c3d4-e5f6-7890-1234-567890abcdef",
+      });
+
+      // Act
+      const response = await apiClient.get("/api/v1/auth/me", {
+        Authorization: "Bearer valid-token",
+      });
+
+      // Assert
+      const body = ResponseValidator.expectSuccess(response, 200);
+      expect(body).toEqual({
+        email: "user@example.com",
+        id: "a1b2c3d4-e5f6-7890-1234-567890abcdef",
+      });
+      ResponseValidator.expectContentType(response, "json");
+    });
+
+    it("should handle different user data", async () => {
+      // Arrange
+      queryBusMock.execute.mockResolvedValue({
+        email: "another@example.com",
+        userId: "different-user-id",
+      });
+
+      // Act
+      const response = await apiClient.get("/api/v1/auth/me");
+
+      // Assert
+      const body = ResponseValidator.expectSuccess(response, 200);
+      expect(body.id).toBe("different-user-id");
+      expect(body.email).toBe("another@example.com");
+    });
+
+    it("should propagate query bus errors", async () => {
+      // Arrange
+      queryBusMock.execute.mockRejectedValue(new Error("Query failed"));
+
+      // Act
+      const response = await apiClient.get("/api/v1/auth/me");
+
+      // Assert
+      ResponseValidator.expectError(response, 500);
     });
   });
 });
