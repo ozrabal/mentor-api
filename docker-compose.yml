@@ -18,7 +18,27 @@ services:
       interval: 10s
       timeout: 5s
       retries: 5
+    networks:
+      - mentor-network
+
+  adminer:
+    image: adminer:latest
+    container_name: mentor-adminer
+    restart: unless-stopped
+    ports:
+      - '8081:8080'
+    environment:
+      ADMINER_DEFAULT_SERVER: postgres
+    depends_on:
+      postgres:
+        condition: service_healthy
+    networks:
+      - mentor-network
 
 volumes:
   postgres_data:
+
+networks:
+  mentor-network:
+    driver: bridge
 
