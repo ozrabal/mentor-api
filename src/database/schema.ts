@@ -28,6 +28,7 @@ export const users = pgTable("users", {
   createdAt: timestamp("created_at", { withTimezone: false })
     .defaultNow()
     .notNull(),
+  deletedAt: timestamp("deleted_at", { withTimezone: false }), // Soft delete
   email: varchar("email", { length: 255 }).notNull().unique(),
   id: uuid("id").defaultRandom().primaryKey(),
   identityId: varchar("identity_id", { length: 255 }).notNull(),
@@ -46,6 +47,7 @@ export const jobProfiles = pgTable("job_profiles", {
   createdAt: timestamp("created_at", { withTimezone: false })
     .defaultNow()
     .notNull(),
+  deletedAt: timestamp("deleted_at", { withTimezone: false }), // Soft delete
   hardSkills: jsonb("hard_skills").$type<string[]>(),
   id: uuid("id").defaultRandom().primaryKey(),
   interviewDifficultyLevel: real("interview_difficulty_level"),
@@ -71,6 +73,7 @@ export const interviewSessions = pgTable("interview_sessions", {
   createdAt: timestamp("created_at", { withTimezone: false })
     .defaultNow()
     .notNull(),
+  deletedAt: timestamp("deleted_at", { withTimezone: false }), // Soft delete
   id: uuid("id").defaultRandom().primaryKey(),
   interviewType: varchar("interview_type", { length: 50 }), // 'behavioral' | 'technical' | 'mixed'
   jobProfileId: uuid("job_profile_id").references(() => jobProfiles.id),
@@ -106,6 +109,7 @@ export const interviewReports = pgTable("interview_reports", {
   createdAt: timestamp("created_at", { withTimezone: false })
     .defaultNow()
     .notNull(),
+  deletedAt: timestamp("deleted_at", { withTimezone: false }), // Soft delete
   feedbackSummary: text("feedback_summary"),
   id: uuid("id").defaultRandom().primaryKey(),
   interviewSessionId: uuid("interview_session_id")
@@ -126,9 +130,14 @@ export const interviewReports = pgTable("interview_reports", {
 // question_pool
 export const questionPool = pgTable("question_pool", {
   competency: varchar("competency", { length: 100 }).notNull(),
+  deletedAt: timestamp("deleted_at", { withTimezone: false }), // Soft delete
   difficulty: integer("difficulty").notNull(), // 1-10
   id: uuid("id").defaultRandom().primaryKey(),
   language: varchar("language", { length: 10 }).default("en"),
   text: text("text").notNull(),
   type: varchar("type", { length: 50 }).notNull(), // 'behavioral' | 'technical' | 'culture'
 });
+
+// Type exports for Drizzle inference
+export type JobProfile = typeof jobProfiles.$inferSelect;
+export type NewJobProfile = typeof jobProfiles.$inferInsert;
