@@ -16,14 +16,16 @@ Refactored the health module from a flat structure to the modular monolith archi
 ### ✅ Structure Transformation
 
 **Before:**
-```
+
+```txt
 src/health/
 ├── health.controller.ts
 └── health.module.ts
 ```
 
 **After:**
-```
+
+```txt
 src/modules/health/
 ├── public/
 │   └── index.ts                    # Public contract (empty for now)
@@ -129,7 +131,8 @@ src/modules/health/
 The API endpoint remains unchanged:
 
 - **Endpoint**: `GET /health`
-- **Response**: 
+- **Response**:
+
   ```json
   {
     "status": "ok",

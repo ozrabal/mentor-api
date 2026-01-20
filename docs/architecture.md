@@ -26,11 +26,13 @@
 ## Overview
 
 The Mentor API follows a **Modular Monolith** architecture, combining:
+
 - **Domain-Driven Design (DDD)** - Rich domain models with business logic
 - **Clean Architecture** - Clear layer separation and dependency rules
 - **CQRS (Command Query Responsibility Segregation)** - Separate read and write operations
 
 Each module is a self-contained "mini-application" with:
+
 - Clear boundaries
 - Clean layers
 - Explicit public contracts (ACL)
@@ -45,12 +47,14 @@ Each module is a self-contained "mini-application" with:
 **Rule:** Modules MUST NOT import internals from other modules.
 
 ✅ **Allowed:**
+
 ```typescript
 // Import from public contract only
 import { IUsersACL, USERS_ACL } from '@modules/users/public';
 ```
 
 ❌ **Forbidden:**
+
 ```typescript
 // ❌ Direct import of internals
 import { User } from '@modules/users/domain/entities/user.entity';
@@ -61,12 +65,13 @@ import { UserRepository } from '@modules/users/infrastructure/persistence/reposi
 
 Dependencies flow **downward only**:
 
-```
+```txt
 presentation → application → domain
 infrastructure → application + domain
 ```
 
 **Rules:**
+
 - Domain MUST NOT depend on NestJS, ORM, HTTP, or frameworks
 - Application MUST NOT depend on ORM entities or HTTP DTOs
 - Presentation MUST NOT call repositories directly
@@ -82,6 +87,7 @@ infrastructure → application + domain
 - Persistence entities/models (infrastructure)
 
 **Mapping required:**
+
 - HTTP DTO ↔ Application DTO
 - Application DTO ↔ Domain
 - Domain ↔ Persistence model
@@ -94,7 +100,7 @@ infrastructure → application + domain
 
 All modules follow this structure:
 
-```
+```txt
 src/modules/<module-name>/
 ├── public/                           # ✅ ONLY cross-module imports allowed from here
 │   ├── acl/
@@ -148,6 +154,7 @@ See `src/modules/health/` for a reference implementation.
 **Purpose:** Pure business logic, no framework dependencies.
 
 **Contains:**
+
 - **Entities**: Rich domain models with business rules
 - **Value Objects**: Immutable, self-validating objects
 - **Repository Interfaces**: Ports (interfaces only, no implementations)
@@ -155,6 +162,7 @@ See `src/modules/health/` for a reference implementation.
 - **Domain Errors**: Business-specific exceptions
 
 **Rules:**
+
 - ✅ Business logic lives here
 - ✅ Entities protect invariants (no public setters)
 - ✅ Value Objects are immutable
@@ -163,6 +171,7 @@ See `src/modules/health/` for a reference implementation.
 - ❌ No HTTP dependencies
 
 **Example:**
+
 ```typescript
 // domain/entities/user.entity.ts
 export class User {
@@ -193,6 +202,7 @@ export class User {
 **Purpose:** Use cases (Commands/Queries), orchestration.
 
 **Contains:**
+
 - **Commands**: Write operations (Create, Update, Delete)
 - **Queries**: Read operations (Get, List, Search)
 - **Handlers**: Command/Query handlers
@@ -200,6 +210,7 @@ export class User {
 - **Mappers**: Map between Application DTOs and Domain
 
 **Rules:**
+
 - ✅ Every write = Command + Handler
 - ✅ Every read = Query + Handler
 - ✅ Handlers use repository interfaces (not implementations)
@@ -207,6 +218,7 @@ export class User {
 - ✅ Explicit mapping
 
 **Example:**
+
 ```typescript
 // application/commands/impl/create-user.command.ts
 export class CreateUserCommand {
@@ -236,6 +248,7 @@ export class CreateUserHandler implements ICommandHandler<CreateUserCommand> {
 **Purpose:** Technical implementations, external integrations.
 
 **Contains:**
+
 - **ORM Entities**: Database models (Drizzle schemas)
 - **Repository Implementations**: Concrete repository implementations
 - **Persistence Mappers**: Map Domain ↔ ORM Entity
@@ -243,12 +256,14 @@ export class CreateUserHandler implements ICommandHandler<CreateUserCommand> {
 - **Event Handlers**: Publish/subscribe to events
 
 **Rules:**
+
 - ✅ ORM models isolated in `infrastructure/persistence/orm-entities`
 - ✅ Repository implementations map Domain ↔ ORM
 - ✅ ACL implementations in `infrastructure/acl`
 - ❌ No exports except via `public/` contracts
 
 **Example:**
+
 ```typescript
 // infrastructure/persistence/repositories/user.repository.ts
 @Injectable()
@@ -272,11 +287,13 @@ export class UserRepository implements IUserRepository {
 **Purpose:** HTTP endpoints, request/response handling.
 
 **Contains:**
+
 - **Controllers**: HTTP controllers (thin, orchestration only)
 - **HTTP DTOs**: Request/Response DTOs
 - **Mappers**: Map HTTP DTO ↔ Application DTO
 
 **Rules:**
+
 - ✅ Controllers are thin (orchestration + mapping)
 - ✅ Use CommandBus/QueryBus
 - ✅ Validation in HTTP DTOs (class-validator)
@@ -284,6 +301,7 @@ export class UserRepository implements IUserRepository {
 - ❌ No business logic
 
 **Example:**
+
 ```typescript
 // presentation/http/controllers/users.controller.ts
 @Controller('users')
@@ -308,6 +326,7 @@ export class UsersController {
 **Purpose:** Change state, perform actions.
 
 **Structure:**
+
 ```typescript
 // Command
 export class CreateUserCommand {
@@ -335,6 +354,7 @@ export class CreateUserHandler implements ICommandHandler<CreateUserCommand> {
 **Purpose:** Retrieve data, no side effects.
 
 **Structure:**
+
 ```typescript
 // Query
 export class GetUserByIdQuery {
@@ -385,6 +405,7 @@ export class UsersController {
 **Purpose:** Synchronous cross-module communication.
 
 **Pattern:**
+
 1. Define interface in `public/acl/`
 2. Implement in `infrastructure/acl/`
 3. Export token from module
@@ -441,11 +462,13 @@ export class CreateJobProfileService {
 **Purpose:** Asynchronous, decoupled communication.
 
 **Pattern:**
+
 1. Define event in `public/events/`
 2. Publish from application/infrastructure boundary
 3. Subscribe in consuming module
 
 **Example:**
+
 ```typescript
 // modules/users/public/events/user-created.event.ts
 export class UserCreatedEvent {
@@ -476,12 +499,14 @@ export class CreateUserHandler {
 ### Entities
 
 **Characteristics:**
+
 - Have identity (ID)
 - Protect invariants (business rules)
 - Expose methods, not setters
 - Rich behavior, not anemic
 
 **Example:**
+
 ```typescript
 export class Order {
   private constructor(
@@ -513,12 +538,14 @@ export class Order {
 ### Value Objects
 
 **Characteristics:**
+
 - Immutable
 - Self-validating
 - Equality by value
 - No identity
 
 **Example:**
+
 ```typescript
 export class Email {
   private constructor(private readonly value: string) {
@@ -551,11 +578,13 @@ export class Email {
 **Location:** `domain/repositories/`
 
 **Rules:**
+
 - Define interfaces only (no implementations)
 - Use domain entities, not ORM entities
 - Return domain objects, not DTOs
 
 **Example:**
+
 ```typescript
 // domain/repositories/user.repository.interface.ts
 export interface IUserRepository {
@@ -595,6 +624,7 @@ export class Order {
 ### Creating a New Module
 
 1. **Create directory structure**
+
    ```bash
    mkdir -p src/modules/<module-name>/{public/acl,domain/{entities,value-objects,repositories,errors},application/{commands/{impl,handlers},queries/{impl,handlers},dto,mappers},infrastructure/{persistence/{orm-entities,repositories,mappers},acl},presentation/http/{controllers,dto,mappers}}
    ```
@@ -654,6 +684,7 @@ import { User } from '../../../domain/entities/user.entity';
 ```
 
 **Configured aliases:**
+
 - `@/*` → `src/*`
 - `@modules/*` → `src/modules/*`
 
@@ -804,12 +835,14 @@ export class UsersACLService implements IUsersACL {
 ### ❌ DON'T
 
 1. **Don't import internals**
+
    ```typescript
    // ❌ Bad
    import { User } from '@modules/users/domain/entities/user.entity';
    ```
 
 2. **Don't return domain entities**
+
    ```typescript
    // ❌ Bad
    @Get(':id')
@@ -819,6 +852,7 @@ export class UsersACLService implements IUsersACL {
    ```
 
 3. **Don't use setters everywhere**
+
    ```typescript
    // ❌ Bad
    order.status = 'PAID';
@@ -826,6 +860,7 @@ export class UsersACLService implements IUsersACL {
    ```
 
 4. **Don't export repositories**
+
    ```typescript
    // ❌ Bad
    @Module({
@@ -834,6 +869,7 @@ export class UsersACLService implements IUsersACL {
    ```
 
 5. **Don't skip DTOs**
+
    ```typescript
    // ❌ Bad - no DTOs, direct domain usage
    ```
@@ -845,6 +881,7 @@ export class UsersACLService implements IUsersACL {
 ### 1. Anemic Domain Model
 
 ❌ **Bad:**
+
 ```typescript
 export class Order {
   status: OrderStatus;
@@ -855,6 +892,7 @@ export class Order {
 ```
 
 ✅ **Good:**
+
 ```typescript
 export class Order {
   private status: OrderStatus;
@@ -869,6 +907,7 @@ export class Order {
 ### 2. Service Layer Anti-Pattern
 
 ❌ **Bad:**
+
 ```typescript
 @Injectable()
 export class OrdersService {
@@ -880,6 +919,7 @@ export class OrdersService {
 ```
 
 ✅ **Good:**
+
 ```typescript
 // Separate Commands and Queries
 @CommandHandler(CreateOrderCommand)
@@ -892,12 +932,14 @@ export class GetOrderHandler { ... }
 ### 3. Direct Cross-Module Repository Access
 
 ❌ **Bad:**
+
 ```typescript
 // In job-profiles module
 import { UserRepository } from '@modules/users/infrastructure/...';
 ```
 
 ✅ **Good:**
+
 ```typescript
 // In job-profiles module
 import { IUsersACL } from '@modules/users/public';
@@ -906,6 +948,7 @@ import { IUsersACL } from '@modules/users/public';
 ### 4. Framework Dependencies in Domain
 
 ❌ **Bad:**
+
 ```typescript
 import { Injectable } from '@nestjs/common';
 
@@ -916,6 +959,7 @@ export class User {
 ```
 
 ✅ **Good:**
+
 ```typescript
 export class User {
   // Pure TypeScript class, no decorators
@@ -927,21 +971,25 @@ export class User {
 ## Testing Strategy
 
 ### Domain Tests
+
 - Test business rules
 - Test invariants
 - Test value object validation
 
 ### Application Tests
+
 - Test command handlers
 - Test query handlers
 - Mock repositories
 
 ### Infrastructure Tests
+
 - Test repository implementations
 - Test mappers
 - Integration tests with database
 
 ### Presentation Tests
+
 - Test controllers
 - Test HTTP DTOs
 - E2E tests
@@ -953,6 +1001,7 @@ export class User {
 Before committing a module, verify:
 
 ### Domain
+
 - [ ] Business logic in domain methods
 - [ ] Value Objects immutable + self-validating
 - [ ] Repository interface defined
@@ -960,6 +1009,7 @@ Before committing a module, verify:
 - [ ] Unit tests for domain rules
 
 ### Application
+
 - [ ] Each write = Command + Handler
 - [ ] Each read = Query + Handler
 - [ ] Handlers use repository interfaces
@@ -967,16 +1017,19 @@ Before committing a module, verify:
 - [ ] Mapping is explicit
 
 ### Infrastructure
+
 - [ ] ORM models isolated
 - [ ] Repository implementation maps to/from domain
 - [ ] No exports except `public/` contracts
 
 ### Presentation
+
 - [ ] Request/response DTOs exist
 - [ ] Validation at the edge
 - [ ] Controllers remain thin
 
 ### Cross-Module
+
 - [ ] Only imports from `@modules/<module>/public`
 - [ ] ACL returns DTOs (no entities)
 - [ ] Public events used where needed

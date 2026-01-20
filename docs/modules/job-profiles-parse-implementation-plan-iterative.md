@@ -51,7 +51,7 @@ This document provides an **iterative and incremental** implementation plan for 
 
 ### Technology Decisions
 
-**AI Integration: Vercel AI SDK**
+**AI Integration: Vercel AI SDK** decision rationale:
 
 We use the Vercel AI SDK instead of direct provider SDKs for several key benefits:
 
@@ -68,7 +68,7 @@ We use the Vercel AI SDK instead of direct provider SDKs for several key benefit
 ## Implementation Steps Overview
 
 | Step | What Gets Added | Endpoint Returns |
-|------|-----------------|------------------|
+| ---- | --------------- | ---------------- |
 | 1 | Basic endpoint structure + minimal module wiring | Simple "accepted" response with mock data |
 | 2 | Domain layer (entities, value objects) | Endpoint returns domain entity as JSON |
 | 3 | Application layer DTOs + mappers + CQRS | Proper response DTOs with mapping |
@@ -85,6 +85,7 @@ We use the Vercel AI SDK instead of direct provider SDKs for several key benefit
 **Goal:** Create working endpoint that accepts requests and returns placeholder response.
 
 **Status After:**
+
 - ✅ Endpoint `/api/v1/job-profiles/parse` responds with 200
 - ✅ Accepts POST with `rawJD` or `jobUrl`
 - ✅ Returns mock parsed job profile
@@ -244,6 +245,7 @@ curl -X POST http://localhost:3000/api/v1/job-profiles/parse \
 ```
 
 **Expected State:**
+
 - ✅ Endpoint accessible and returns 200
 - ✅ Validation rejects invalid requests
 - ✅ Authentication guard works
@@ -257,6 +259,7 @@ curl -X POST http://localhost:3000/api/v1/job-profiles/parse \
 **Goal:** Replace mock data with proper domain entities.
 
 **Status After:**
+
 - ✅ Domain entities created
 - ✅ Value objects enforce business rules
 - ✅ Controller uses domain entities to build response
@@ -657,6 +660,7 @@ curl -X POST http://localhost:3000/api/v1/job-profiles/parse \
 ```
 
 **Expected State:**
+
 - ✅ Domain entities with business logic
 - ✅ Value objects enforce validation
 - ✅ Controller uses domain layer
@@ -670,6 +674,7 @@ curl -X POST http://localhost:3000/api/v1/job-profiles/parse \
 **Goal:** Introduce proper application layer with CQRS pattern.
 
 **Status After:**
+
 - ✅ Command/Handler pattern implemented
 - ✅ Application DTOs separate from HTTP DTOs
 - ✅ Mappers handle transformations
@@ -915,6 +920,7 @@ curl -X POST http://localhost:3000/api/v1/job-profiles/parse \
 ```
 
 **Expected State:**
+
 - ✅ CQRS pattern implemented
 - ✅ Clear separation: HTTP → Command → Handler → Domain
 - ✅ Mappers at layer boundaries
@@ -928,6 +934,7 @@ curl -X POST http://localhost:3000/api/v1/job-profiles/parse \
 **Goal:** Add real text normalization for raw JD input.
 
 **Status After:**
+
 - ✅ JD Extractor service normalizes raw text
 - ✅ Handler uses service for text processing
 - ✅ Endpoint processes real raw JD input
@@ -1055,6 +1062,7 @@ curl -X POST http://localhost:3000/api/v1/job-profiles/parse \
 ```
 
 **Expected State:**
+
 - ✅ Raw JD text gets normalized
 - ✅ Service layer added
 - ✅ Still returns placeholder skills/competencies
@@ -1067,6 +1075,7 @@ curl -X POST http://localhost:3000/api/v1/job-profiles/parse \
 **Goal:** Save job profiles to database and return real persisted data.
 
 **Status After:**
+
 - ✅ Repository implemented
 - ✅ Persistence mappers working
 - ✅ Job profiles saved to PostgreSQL
@@ -1409,6 +1418,7 @@ npm run db:studio
 ```
 
 **Expected State:**
+
 - ✅ Job profiles persisted to PostgreSQL
 - ✅ Returns real DB-generated data
 - ✅ Repository pattern working
@@ -1422,6 +1432,7 @@ npm run db:studio
 **Goal:** Add ability to fetch and parse job URLs.
 
 **Status After:**
+
 - ✅ Can accept `jobUrl` parameter
 - ✅ Fetches HTML from URL
 - ✅ Extracts clean text from HTML
@@ -1651,6 +1662,7 @@ curl -X POST http://localhost:3000/api/v1/job-profiles/parse \
 ```
 
 **Expected State:**
+
 - ✅ Both rawJD and jobUrl inputs work
 - ✅ HTML fetching and extraction functional
 - ✅ Text properly normalized
@@ -1665,6 +1677,7 @@ curl -X POST http://localhost:3000/api/v1/job-profiles/parse \
 **Goal:** Replace placeholder competencies with real AI-powered parsing using Vercel AI SDK.
 
 **Status After:**
+
 - ✅ **FULLY FUNCTIONAL ENDPOINT**
 - ✅ Real structured extraction from job descriptions
 - ✅ Competencies, skills, seniority all parsed by AI
@@ -1975,6 +1988,7 @@ curl -X POST http://localhost:3000/api/v1/job-profiles/parse \
 ```
 
 **Expected State:**
+
 - ✅ **PRODUCTION-READY ENDPOINT**
 - ✅ Real AI-powered parsing
 - ✅ Accurate competency extraction
@@ -1989,6 +2003,7 @@ curl -X POST http://localhost:3000/api/v1/job-profiles/parse \
 **Goal:** Add comprehensive tests and documentation.
 
 **Status After:**
+
 - ✅ Unit tests for domain entities
 - ✅ Unit tests for services
 - ✅ Unit tests for handler
@@ -2231,6 +2246,7 @@ Parses job descriptions using AI (via Vercel AI SDK) to extract structured compe
 ```
 
 **Response:**
+
 ```json
 {
   "id": "uuid",
@@ -2289,7 +2305,6 @@ this.model = google('gemini-pro');
 - `zod` - Schema validation
 - `axios` - HTTP client
 - `cheerio` - HTML parsing
-```
 
 ### 8.6 Verification
 
@@ -2314,6 +2329,7 @@ curl -X POST http://localhost:3000/api/v1/job-profiles/parse \
 ```
 
 **Expected State:**
+
 - ✅ All tests passing
 - ✅ Code coverage > 80%
 - ✅ Documentation complete
@@ -2332,7 +2348,7 @@ This iterative approach ensures:
 5. **Better understanding** - see how layers connect progressively
 
 | Step | Endpoint Status | What's Real |
-|------|----------------|-------------|
+| ---- | --------------- | ----------- |
 | 1 | ✅ Returns 200 | Validation, auth, structure |
 | 2 | ✅ Returns 200 | Domain entities |
 | 3 | ✅ Returns 200 | CQRS pattern, mappers |
@@ -2359,6 +2375,7 @@ This iterative approach ensures:
    - Reflects provider-agnostic design
 
 3. **Dependencies**:
+
    ```bash
    # Removed
    - @anthropic-ai/sdk
@@ -2370,6 +2387,7 @@ This iterative approach ensures:
    ```
 
 4. **Environment Variables**:
+
    ```bash
    # Removed
    - CLAUDE_API_KEY

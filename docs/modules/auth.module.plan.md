@@ -3,6 +3,7 @@
 Goal: add an Auth module with Supabase integration, service, controller, and JWT guard (login + register only). Follow CQRS, thin controllers, and existing module structure.
 
 ## Steps
+
 1) Define module structure
    - Create `src/modules/auth/` with `application/`, `presentation/http/`, `public/`, and `auth.module.ts`.
    - Mirror the Health module layout and use `@nestjs/cqrs` for all operations.
