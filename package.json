@@ -39,6 +39,7 @@
     "health": "curl http://localhost:3000/health"
   },
   "dependencies": {
+    "@ai-sdk/openai": "^3.0.12",
     "@nestjs/common": "^11.1.11",
     "@nestjs/config": "^4.0.2",
     "@nestjs/core": "^11.1.11",
@@ -48,6 +49,9 @@
     "@nestjs/platform-express": "^11.1.11",
     "@nestjs/swagger": "^11.2.4",
     "@supabase/supabase-js": "^2.38.4",
+    "ai": "^6.0.41",
+    "axios": "^1.13.2",
+    "cheerio": "^1.1.2",
     "class-transformer": "^0.5.1",
     "class-validator": "^0.14.0",
     "drizzle-orm": "^0.29.1",
@@ -65,6 +69,7 @@
     "@nestjs/cli": "^11.0.14",
     "@nestjs/schematics": "^11.0.9",
     "@nestjs/testing": "^11.1.11",
+    "@types/cheerio": "^1.0.0",
     "@types/express": "^5.0.0",
     "@types/jest": "^29.5.8",
     "@types/node": "^20.9.0",
