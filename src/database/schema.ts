@@ -139,5 +139,7 @@ export const questionPool = pgTable("question_pool", {
 });
 
 // Type exports for Drizzle inference
+export type User = typeof users.$inferSelect;
+export type NewUser = typeof users.$inferInsert;
 export type JobProfile = typeof jobProfiles.$inferSelect;
 export type NewJobProfile = typeof jobProfiles.$inferInsert;
