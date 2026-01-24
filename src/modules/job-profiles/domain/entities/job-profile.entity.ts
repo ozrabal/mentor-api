@@ -56,7 +56,22 @@ export class JobProfile {
     );
   }
 
-  static rehydrate(props: Required<JobProfileProps>): JobProfile {
+  static rehydrate(props: {
+    companyName?: string;
+    competencies?: Competency[];
+    createdAt: Date;
+    deletedAt?: Date;
+    hardSkills?: string[];
+    id: JobProfileId;
+    interviewDifficultyLevel?: number;
+    jobTitle?: string;
+    jobUrl?: string;
+    rawJD?: string;
+    seniorityLevel?: SeniorityLevel;
+    softSkills?: string[];
+    updatedAt: Date;
+    userId: UserId;
+  }): JobProfile {
     return new JobProfile(
       props.id,
       props.userId,
@@ -64,9 +79,9 @@ export class JobProfile {
       props.companyName,
       props.jobUrl,
       props.rawJD,
-      props.competencies,
-      props.softSkills,
-      props.hardSkills,
+      props.competencies || [],
+      props.softSkills || [],
+      props.hardSkills || [],
       props.seniorityLevel,
       props.interviewDifficultyLevel,
       props.createdAt,

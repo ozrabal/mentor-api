@@ -1,8 +1,12 @@
-import { BadRequestException, Logger } from "@nestjs/common";
+import { BadRequestException, Inject, Logger } from "@nestjs/common";
 import { CommandHandler, ICommandHandler } from "@nestjs/cqrs";
 
 import { Competency } from "../../../domain/entities/competency.entity";
 import { JobProfile } from "../../../domain/entities/job-profile.entity";
+import {
+  IJobProfileRepository,
+  JOB_PROFILE_REPOSITORY,
+} from "../../../domain/repositories/job-profile.repository.interface";
 import { SeniorityLevel } from "../../../domain/value-objects/seniority-level";
 import { UserId } from "../../../domain/value-objects/user-id";
 import { JdExtractorService } from "../../../infrastructure/services/jd-extractor.service";
@@ -14,7 +18,11 @@ import { ParseJobDescriptionCommand } from "../impl/parse-job-description.comman
 export class ParseJobDescriptionHandler implements ICommandHandler<ParseJobDescriptionCommand> {
   private readonly logger = new Logger(ParseJobDescriptionHandler.name);
 
-  constructor(private readonly jdExtractor: JdExtractorService) {}
+  constructor(
+    @Inject(JOB_PROFILE_REPOSITORY)
+    private readonly repository: IJobProfileRepository,
+    private readonly jdExtractor: JdExtractorService,
+  ) {}
 
   async execute(command: ParseJobDescriptionCommand): Promise<JobProfileDto> {
     this.logger.log(`Parsing job description for user ${command.userId}`);
@@ -51,9 +59,12 @@ export class ParseJobDescriptionHandler implements ICommandHandler<ParseJobDescr
       userId: UserId.create(command.userId),
     });
 
+    // Save to database
+    await this.repository.save(jobProfile);
     this.logger.log(
-      `Created job profile with id ${jobProfile.getId().getValue()}`,
+      `Saved job profile to database with id ${jobProfile.getId().getValue()}`,
     );
-    return Promise.resolve(JobProfileMapper.toDto(jobProfile));
+
+    return JobProfileMapper.toDto(jobProfile);
   }
 }
