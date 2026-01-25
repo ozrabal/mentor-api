@@ -1,5 +1,6 @@
 import {
   ExecutionContext,
+  Inject,
   Injectable,
   UnauthorizedException,
 } from "@nestjs/common";
@@ -8,8 +9,44 @@ import { User } from "@supabase/supabase-js";
 import { Request } from "express";
 import { decode } from "jsonwebtoken";
 
+import { IUsersACL } from "../public/acl/users.acl.interface";
+import { USERS_ACL } from "../public/acl/users.acl.tokens";
+
 @Injectable()
 export class SupabaseJwtGuard extends AuthGuard("supabase-jwt") {
+  constructor(@Inject(USERS_ACL) private readonly usersAcl: IUsersACL) {
+    super();
+  }
+
+  async canActivate(context: ExecutionContext): Promise<boolean> {
+    const result = (await super.canActivate(context)) as boolean;
+    const request: Request = context.switchToHttp().getRequest();
+    const user = request.user as undefined | { sub?: string; userId?: string };
+
+    if (!user) {
+      throw new UnauthorizedException("Invalid token - no user data");
+    }
+
+    const identityId = user.userId ?? user.sub;
+    if (!identityId) {
+      throw new UnauthorizedException("Invalid token - no user ID");
+    }
+
+    const userProfile = await this.usersAcl.getUserByIdentityId(identityId);
+
+    if (!userProfile) {
+      throw new UnauthorizedException("User profile not found");
+    }
+
+    request.user = {
+      email: userProfile.email,
+      id: userProfile.id,
+      identityId: userProfile.identityId,
+    };
+
+    return result;
+  }
+
   handleRequest<TUser = User>(
     err: any,
     user: any,
@@ -39,7 +76,6 @@ export class SupabaseJwtGuard extends AuthGuard("supabase-jwt") {
         throw new UnauthorizedException("Invalid token format");
       }
 
-      // Let passport-jwt pass the decoded payload to validate()
       return decoded as TUser;
     }
 

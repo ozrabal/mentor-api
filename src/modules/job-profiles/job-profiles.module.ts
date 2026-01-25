@@ -3,6 +3,7 @@ import { ConfigModule } from "@nestjs/config";
 import { CqrsModule } from "@nestjs/cqrs";
 
 import { DatabaseModule } from "@/database/database.module";
+import { AuthModule } from "@/modules/auth/auth.module";
 
 import { ParseJobDescriptionHandler } from "./application/commands/handlers/parse-job-description.handler";
 import { JOB_PROFILE_REPOSITORY } from "./domain/repositories/job-profile.repository.interface";
@@ -21,7 +22,7 @@ const Repositories = [
 
 @Module({
   controllers: [JobProfilesController],
-  imports: [CqrsModule, ConfigModule, DatabaseModule],
+  imports: [CqrsModule, ConfigModule, DatabaseModule, AuthModule],
   providers: [...CommandHandlers, ...Services, ...Repositories],
 })
 export class JobProfilesModule {}

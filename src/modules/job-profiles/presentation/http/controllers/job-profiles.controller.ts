@@ -26,11 +26,9 @@ export class JobProfilesController {
   @Post("parse")
   async parse(
     @Body() dto: ParseJobDescriptionRequestDto,
-    @CurrentUser() user: { email: string; sub?: string; userId?: string },
+    @CurrentUser() user: { email: string; id: string; identityId?: string },
   ): Promise<ParseJobDescriptionResponseDto> {
-    // Extract userId from JWT payload (sub field) or validated user (userId field)
-    const userId = user.userId || user.sub || "";
-
+    const userId = user.id;
     this.logger.log(`Parsing job description for user ${userId}`);
 
     const command = new ParseJobDescriptionCommand(

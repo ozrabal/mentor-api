@@ -161,9 +161,9 @@ describe("AuthController", () => {
       // Arrange
       const user = {
         email: "user@example.com",
-        userId: "a1b2c3d4-e5f6-7890-1234-567890abcdef",
+        id: "a1b2c3d4-e5f6-7890-1234-567890abcdef",
       };
-      const currentUserDto = new CurrentUserDto(user.userId, user.email);
+      const currentUserDto = new CurrentUserDto(user.id, user.email);
       queryBus.execute.mockResolvedValue(currentUserDto);
 
       // Act
@@ -182,9 +182,9 @@ describe("AuthController", () => {
       // Arrange
       const user = {
         email: "another@example.com",
-        userId: "different-user-id",
+        id: "different-user-id",
       };
-      const currentUserDto = new CurrentUserDto(user.userId, user.email);
+      const currentUserDto = new CurrentUserDto(user.id, user.email);
       queryBus.execute.mockResolvedValue(currentUserDto);
 
       // Act
@@ -199,7 +199,7 @@ describe("AuthController", () => {
       // Arrange
       const user = {
         email: "user@example.com",
-        userId: "user-id",
+        id: "user-id",
       };
       queryBus.execute.mockRejectedValue(new Error("Query bus error"));
 

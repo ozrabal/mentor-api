@@ -105,13 +105,15 @@ export class AuthController {
   @Get("me")
   @UseGuards(SupabaseJwtGuard)
   async getCurrentUser(
-    @CurrentUser() user: { email: string; sub?: string; userId?: string },
+    @CurrentUser()
+    user: {
+      email: string;
+      id: string;
+      identityId?: string;
+    },
   ): Promise<CurrentUserResponseDto> {
-    // The guard returns the decoded JWT payload when using dummy secret
-    // Extract userId from 'sub' field (JWT payload) or 'userId' field (validated user)
-    const userId = user.userId || user.sub || "";
+    const userId = user.id;
     const email = user.email;
-
     const result = await this.queryBus.execute<
       GetCurrentUserQuery,
       CurrentUserDto
