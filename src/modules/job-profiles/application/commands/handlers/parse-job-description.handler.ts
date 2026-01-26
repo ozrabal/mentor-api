@@ -9,6 +9,7 @@ import {
 } from "../../../domain/repositories/job-profile.repository.interface";
 import { SeniorityLevel } from "../../../domain/value-objects/seniority-level";
 import { UserId } from "../../../domain/value-objects/user-id";
+import { HtmlFetcherService } from "../../../infrastructure/services/html-fetcher.service";
 import { JdExtractorService } from "../../../infrastructure/services/jd-extractor.service";
 import { JobProfileDto } from "../../dto/job-profile.dto";
 import { JobProfileMapper } from "../../mappers/job-profile.mapper";
@@ -21,6 +22,7 @@ export class ParseJobDescriptionHandler implements ICommandHandler<ParseJobDescr
   constructor(
     @Inject(JOB_PROFILE_REPOSITORY)
     private readonly repository: IJobProfileRepository,
+    private readonly htmlFetcher: HtmlFetcherService,
     private readonly jdExtractor: JdExtractorService,
   ) {}
 
@@ -31,13 +33,24 @@ export class ParseJobDescriptionHandler implements ICommandHandler<ParseJobDescr
       throw new BadRequestException("Either jobUrl or rawJD must be provided");
     }
 
-    // Normalize the raw JD if provided
-    let normalizedText: string | undefined;
-    if (command.rawJD) {
-      normalizedText = this.jdExtractor.normalizeRawJD(command.rawJD);
+    // Step 1: Get job description text
+    let jdText: string;
+    let jobUrl: string | undefined;
+
+    if (command.jobUrl) {
+      // Fetch HTML from URL
+      const html = await this.htmlFetcher.fetchHtml(command.jobUrl);
+
+      // Extract text from HTML
+      jdText = this.jdExtractor.extractTextFromHtml(html);
+      jobUrl = command.jobUrl;
+
       this.logger.log(
-        `Normalized JD text: ${normalizedText.substring(0, 100)}...`,
+        `Extracted text from URL: ${jdText.substring(0, 100)}...`,
       );
+    } else if (command.rawJD) {
+      // Use raw JD directly
+      jdText = this.jdExtractor.normalizeRawJD(command.rawJD);
     }
 
     // TODO: Actual parsing still placeholder - will add AI in next step
@@ -50,8 +63,8 @@ export class ParseJobDescriptionHandler implements ICommandHandler<ParseJobDescr
       hardSkills: ["JavaScript", "TypeScript"],
       interviewDifficultyLevel: 5,
       jobTitle: command.jobTitle || "Software Engineer (placeholder)",
-      jobUrl: command.jobUrl,
-      rawJD: normalizedText || command.rawJD,
+      jobUrl: jobUrl,
+      rawJD: command.rawJD,
       seniorityLevel: command.seniority
         ? SeniorityLevel.create(command.seniority)
         : SeniorityLevel.create(5),
