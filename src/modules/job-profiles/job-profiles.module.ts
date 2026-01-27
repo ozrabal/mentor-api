@@ -8,12 +8,13 @@ import { AuthModule } from "@/modules/auth/auth.module";
 import { ParseJobDescriptionHandler } from "./application/commands/handlers/parse-job-description.handler";
 import { JOB_PROFILE_REPOSITORY } from "./domain/repositories/job-profile.repository.interface";
 import { JobProfileRepository } from "./infrastructure/persistence/repositories/job-profile.repository";
+import { AiParserService } from "./infrastructure/services/ai-parser.service";
 import { HtmlFetcherService } from "./infrastructure/services/html-fetcher.service";
 import { JdExtractorService } from "./infrastructure/services/jd-extractor.service";
 import { JobProfilesController } from "./presentation/http/controllers/job-profiles.controller";
 
 const CommandHandlers = [ParseJobDescriptionHandler];
-const Services = [HtmlFetcherService, JdExtractorService];
+const Services = [HtmlFetcherService, JdExtractorService, AiParserService];
 const Repositories = [
   {
     provide: JOB_PROFILE_REPOSITORY,

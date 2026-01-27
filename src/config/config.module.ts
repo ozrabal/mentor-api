@@ -7,6 +7,8 @@ const envSchema = z.object({
   CLAUDE_API_KEY: z.string().min(1),
   // Database
   DATABASE_URL: z.string().min(1),
+  GOOGLE_GENERATIVE_AI_API_KEY: z.string().min(1).optional(),
+
   JWT_SECRET: z.string().min(32).optional(),
 
   // Application
@@ -15,9 +17,9 @@ const envSchema = z.object({
     .default("development"),
 
   PORT: z.string().regex(/^\d+$/).transform(Number).default("3000"),
-
   SUPABASE_ANON_KEY: z.string().min(1),
   SUPABASE_SERVICE_ROLE_KEY: z.string().min(1),
+
   // Supabase
   SUPABASE_URL: z.string().url(),
 });

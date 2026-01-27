@@ -9,6 +9,7 @@ import {
 } from "../../../domain/repositories/job-profile.repository.interface";
 import { SeniorityLevel } from "../../../domain/value-objects/seniority-level";
 import { UserId } from "../../../domain/value-objects/user-id";
+import { AiParserService } from "../../../infrastructure/services/ai-parser.service";
 import { HtmlFetcherService } from "../../../infrastructure/services/html-fetcher.service";
 import { JdExtractorService } from "../../../infrastructure/services/jd-extractor.service";
 import { JobProfileDto } from "../../dto/job-profile.dto";
@@ -24,6 +25,7 @@ export class ParseJobDescriptionHandler implements ICommandHandler<ParseJobDescr
     private readonly repository: IJobProfileRepository,
     private readonly htmlFetcher: HtmlFetcherService,
     private readonly jdExtractor: JdExtractorService,
+    private readonly aiParser: AiParserService,
   ) {}
 
   async execute(command: ParseJobDescriptionCommand): Promise<JobProfileDto> {
@@ -44,40 +46,41 @@ export class ParseJobDescriptionHandler implements ICommandHandler<ParseJobDescr
       // Extract text from HTML
       jdText = this.jdExtractor.extractTextFromHtml(html);
       jobUrl = command.jobUrl;
-
-      this.logger.log(
-        `Extracted text from URL: ${jdText.substring(0, 100)}...`,
-      );
-    } else if (command.rawJD) {
-      // Use raw JD directly
-      jdText = this.jdExtractor.normalizeRawJD(command.rawJD);
+    } else {
+      // Use raw JD directly (guaranteed to exist due to validation above)
+      jdText = this.jdExtractor.normalizeRawJD(command.rawJD!);
     }
 
-    // TODO: Actual parsing still placeholder - will add AI in next step
+    // Step 2: Call AI API with structured output
+    const parsedData = await this.aiParser.parseJobDescription(jdText);
+
+    // Step 3: Create domain entity
     const jobProfile = JobProfile.createNew({
-      companyName: "Example Corp (placeholder)",
-      competencies: [
-        Competency.create({ depth: 5, name: "Programming", weight: 0.5 }),
-        Competency.create({ depth: 5, name: "Communication", weight: 0.5 }),
-      ],
-      hardSkills: ["JavaScript", "TypeScript"],
-      interviewDifficultyLevel: 5,
-      jobTitle: command.jobTitle || "Software Engineer (placeholder)",
-      jobUrl: jobUrl,
+      companyName: parsedData.company_name,
+      jobTitle: parsedData.job_title,
+      jobUrl,
       rawJD: command.rawJD,
-      seniorityLevel: command.seniority
-        ? SeniorityLevel.create(command.seniority)
-        : SeniorityLevel.create(5),
-      softSkills: ["Communication", "Teamwork"],
       userId: UserId.create(command.userId),
     });
 
-    // Save to database
+    // Update with parsed data
+    jobProfile.updateParsedData({
+      companyName: parsedData.company_name,
+      competencies: parsedData.competencies.map((c) => Competency.create(c)),
+      hardSkills: parsedData.hard_skills,
+      interviewDifficultyLevel: parsedData.interview_difficulty_level,
+      jobTitle: parsedData.job_title,
+      seniorityLevel: SeniorityLevel.create(parsedData.seniority_level),
+      softSkills: parsedData.soft_skills,
+    });
+
+    // Step 4: Store in PostgreSQL via Drizzle
     await this.repository.save(jobProfile);
     this.logger.log(
-      `Saved job profile to database with id ${jobProfile.getId().getValue()}`,
+      `Job profile created with id ${jobProfile.getId().getValue()}`,
     );
 
+    // Return DTO
     return JobProfileMapper.toDto(jobProfile);
   }
 }
