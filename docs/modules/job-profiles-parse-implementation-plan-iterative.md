@@ -13,15 +13,15 @@
 ### Dependencies to Install
 
 ```bash
-npm install axios cheerio ai @ai-sdk/openai zod
+npm install axios cheerio ai @ai-sdk/google zod
 npm install -D @types/cheerio
 ```
 
 ### Environment Variables Required
 
 ```bash
-OPENAI_API_KEY=sk-your-openai-api-key
-AI_MODEL=gpt-4o  # Optional, defaults to gpt-4o
+GOOGLE_GENERATIVE_AI_API_KEY=your-google-api-key
+AI_MODEL=gemini-1.5-pro  # Optional, defaults to gemini-1.5-pro
 ```
 
 ### Key Files to Create
@@ -57,11 +57,11 @@ We use the Vercel AI SDK instead of direct provider SDKs for several key benefit
 
 - **Model Agnostic**: Switch between OpenAI, Anthropic, Google, Mistral, and others with minimal code changes
 - **Structured Output**: Built-in `generateObject()` with Zod schema validation ensures type-safe responses
-- **Provider Flexibility**: Start with OpenAI (gpt-4o), easily migrate to Claude or Gemini later
+- **Provider Flexibility**: Start with Google Gemini (gemini-1.5-pro), easily migrate to Claude or OpenAI later
 - **Consistent API**: Unified interface across all providers reduces vendor lock-in
 - **Future-Proof**: Add new providers as they emerge without refactoring core logic
 
-**Initial Configuration**: OpenAI with GPT-4o for production-ready structured extraction.
+**Initial Configuration**: Google Gemini with gemini-1.5-pro for production-ready structured extraction.
 
 ---
 
@@ -75,7 +75,7 @@ We use the Vercel AI SDK instead of direct provider SDKs for several key benefit
 | 4 | Text normalization (raw JD input) | Can accept rawJD, returns normalized placeholder data |
 | 5 | Repository + persistence | Saves to DB, returns persisted job profile |
 | 6 | HTML fetcher service | Can accept jobUrl, fetches and extracts text |
-| 7 | AI integration (Vercel AI SDK + OpenAI) | Real AI parsing with structured extraction |
+| 7 | AI integration (Vercel AI SDK + Google Gemini) | Real AI parsing with structured extraction |
 | 8 | Tests + documentation | Production ready |
 
 ---
@@ -95,7 +95,7 @@ We use the Vercel AI SDK instead of direct provider SDKs for several key benefit
 ### 1.1 Install Dependencies
 
 ```bash
-npm install axios cheerio ai @ai-sdk/openai
+npm install axios cheerio ai @ai-sdk/google
 npm install -D @types/cheerio
 ```
 
@@ -1681,7 +1681,7 @@ curl -X POST http://localhost:3000/api/v1/job-profiles/parse \
 - ✅ **FULLY FUNCTIONAL ENDPOINT**
 - ✅ Real structured extraction from job descriptions
 - ✅ Competencies, skills, seniority all parsed by AI
-- ✅ Model-agnostic architecture (initially using OpenAI)
+- ✅ Model-agnostic architecture (initially using Google Gemini)
 - ✅ Production-ready parsing logic
 
 ### 7.1 AI Parser Service (Model-Agnostic)
@@ -1692,7 +1692,7 @@ curl -X POST http://localhost:3000/api/v1/job-profiles/parse \
 import { Injectable, Logger } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { generateObject } from 'ai';
-import { openai } from '@ai-sdk/openai';
+import { google } from '@ai-sdk/google';
 import { z } from 'zod';
 import { JobDescriptionParsingError } from '../../domain/errors/job-profile.errors';
 
@@ -1729,18 +1729,18 @@ export class AiParserService {
   private readonly model: any;
 
   constructor(private readonly configService: ConfigService) {
-    const apiKey = this.configService.get<string>('OPENAI_API_KEY');
+    const apiKey = this.configService.get<string>('GOOGLE_GENERATIVE_AI_API_KEY');
     if (!apiKey) {
-      throw new Error('OPENAI_API_KEY is not configured');
+      throw new Error('GOOGLE_GENERATIVE_AI_API_KEY is not configured');
     }
 
     // Initialize model - can be easily switched to other providers
     // Examples:
     // - openai('gpt-4-turbo') for OpenAI
     // - anthropic('claude-3-5-sonnet-20241022') for Anthropic
-    // - google('gemini-pro') for Google
-    const modelName = this.configService.get<string>('AI_MODEL') || 'gpt-4o';
-    this.model = openai(modelName);
+    // - google('gemini-1.5-pro') for Google
+    const modelName = this.configService.get<string>('AI_MODEL') || 'gemini-1.5-pro';
+    this.model = google(modelName);
 
     this.logger.log(`Initialized AI parser with model: ${modelName}`);
   }
@@ -1941,12 +1941,12 @@ Add to `.env`:
 
 ```bash
 # AI Configuration
-OPENAI_API_KEY=sk-your-openai-api-key-here
-AI_MODEL=gpt-4o  # or gpt-4-turbo, gpt-3.5-turbo, etc.
+GOOGLE_GENERATIVE_AI_API_KEY=your-google-api-key-here
+AI_MODEL=gemini-1.5-pro  # or gemini-1.5-flash, gemini-pro, etc.
 
 # Alternative providers (for future use):
+# OPENAI_API_KEY=sk-your-openai-key     # for OpenAI
 # ANTHROPIC_API_KEY=your-anthropic-key  # for Claude
-# GOOGLE_API_KEY=your-google-key        # for Gemini
 ```
 
 ### 7.5 Model Provider Configuration Examples
@@ -1954,17 +1954,17 @@ AI_MODEL=gpt-4o  # or gpt-4-turbo, gpt-3.5-turbo, etc.
 The service can be easily switched between providers by changing the model initialization:
 
 ```typescript
-// OpenAI (current default)
+// Google Gemini (current default)
+import { google } from '@ai-sdk/google';
+this.model = google('gemini-1.5-pro');
+
+// OpenAI
 import { openai } from '@ai-sdk/openai';
 this.model = openai('gpt-4o');
 
 // Anthropic Claude
 import { anthropic } from '@ai-sdk/anthropic';
 this.model = anthropic('claude-3-5-sonnet-20241022');
-
-// Google Gemini
-import { google } from '@ai-sdk/google';
-this.model = google('gemini-pro');
 
 // Mistral
 import { mistral } from '@ai-sdk/mistral';
@@ -2227,7 +2227,7 @@ Parses job descriptions using AI (via Vercel AI SDK) to extract structured compe
   - Extract competencies with weights and depth
   - Identify hard/soft skills
   - Estimate seniority and interview difficulty
-  - Model-agnostic AI parsing (initially using OpenAI)
+  - Model-agnostic AI parsing (initially using Google Gemini)
 
 ## API
 
@@ -2276,32 +2276,32 @@ Parses job descriptions using AI (via Vercel AI SDK) to extract structured compe
 Configure AI provider in `.env`:
 
 ```bash
-# OpenAI (default)
-OPENAI_API_KEY=sk-...
-AI_MODEL=gpt-4o
+# Google Gemini (default)
+GOOGLE_GENERATIVE_AI_API_KEY=...
+AI_MODEL=gemini-1.5-pro
 
 # Or use other providers:
+# OPENAI_API_KEY=sk-...
 # ANTHROPIC_API_KEY=sk-ant-...
-# GOOGLE_API_KEY=...
 ```
 
 Switching providers requires only a code change in `ai-parser.service.ts`:
 
 ```typescript
+// Google Gemini
+this.model = google('gemini-1.5-pro');
+
 // OpenAI
 this.model = openai('gpt-4o');
 
 // Anthropic
 this.model = anthropic('claude-3-5-sonnet-20241022');
-
-// Google
-this.model = google('gemini-pro');
 ```
 
 ## Dependencies
 
 - `ai` - Vercel AI SDK
-- `@ai-sdk/openai` - OpenAI provider
+- `@ai-sdk/google` - Google Gemini provider
 - `zod` - Schema validation
 - `axios` - HTTP client
 - `cheerio` - HTML parsing
@@ -2355,7 +2355,7 @@ This iterative approach ensures:
 | 4 | ✅ Returns 200 | Text normalization |
 | 5 | ✅ Returns 200 | Database persistence |
 | 6 | ✅ Returns 200 | HTML fetching |
-| 7 | ✅ **PRODUCTION** | **AI parsing with Vercel AI SDK - FULL FEATURE** |
+| 7 | ✅ **PRODUCTION** | **AI parsing with Gemini via Vercel AI SDK - FULL FEATURE** |
 | 8 | ✅ **PRODUCTION** | **Tests & docs** |
 
 ---
@@ -2366,7 +2366,7 @@ This iterative approach ensures:
 
 1. **AI Integration**:
    - ❌ Direct Anthropic SDK (`@anthropic-ai/sdk`)
-   - ✅ Vercel AI SDK (`ai`) with OpenAI provider initially
+   - ✅ Vercel AI SDK (`ai`) with Google Gemini provider initially
    - Benefits: Model-agnostic, structured output with Zod validation, easy provider switching
 
 2. **Service Naming**:
@@ -2382,7 +2382,7 @@ This iterative approach ensures:
 
    # Added
    + ai (Vercel AI SDK)
-   + @ai-sdk/openai (OpenAI provider)
+   + @ai-sdk/google (Google Gemini provider)
    + zod (already in project for validation)
    ```
 
@@ -2393,48 +2393,48 @@ This iterative approach ensures:
    - CLAUDE_API_KEY
 
    # Added
-   + OPENAI_API_KEY
-   + AI_MODEL (optional, defaults to gpt-4o)
+   + GOOGLE_GENERATIVE_AI_API_KEY
+   + AI_MODEL (optional, defaults to gemini-1.5-pro)
    ```
 
 ### Provider Flexibility Examples
 
-Switching from OpenAI to Anthropic Claude:
+Switching from Google Gemini to OpenAI:
 
 ```typescript
 // 1. Install provider package
-npm install @ai-sdk/anthropic
+npm install @ai-sdk/openai
 
 // 2. Update imports in ai-parser.service.ts
-import { anthropic } from '@ai-sdk/anthropic';
+import { openai } from '@ai-sdk/openai';
 
 // 3. Change model initialization
-this.model = anthropic('claude-3-5-sonnet-20241022');
+this.model = openai('gpt-4o');
 
 // 4. Update environment variables
-ANTHROPIC_API_KEY=sk-ant-...
-AI_MODEL=claude-3-5-sonnet-20241022
+OPENAI_API_KEY=sk-...
+AI_MODEL=gpt-4o
 ```
 
-Switching to Google Gemini:
+Switching to Anthropic Claude:
 
 ```typescript
 // 1. Install provider
-npm install @ai-sdk/google
+npm install @ai-sdk/anthropic
 
 // 2. Update service
-import { google } from '@ai-sdk/google';
-this.model = google('gemini-pro');
+import { anthropic } from '@ai-sdk/anthropic';
+this.model = anthropic('claude-3-5-sonnet-20241022');
 
 // 3. Environment
-GOOGLE_API_KEY=...
-AI_MODEL=gemini-pro
+ANTHROPIC_API_KEY=sk-ant-...
+AI_MODEL=claude-3-5-sonnet-20241022
 ```
 
 ---
 
 **Document Status:** ✅ Ready for Iterative Implementation with Vercel AI SDK
-**Last Updated:** 2026-01-19
+**Last Updated:** 2026-01-26
 **Module:** job-profiles
 **Feature:** FR-JP-001 Parse Job Description (Iterative)
-**AI Provider:** OpenAI (gpt-4o) via Vercel AI SDK
+**AI Provider:** Google Gemini (gemini-1.5-pro) via Vercel AI SDK
