@@ -1,6 +1,11 @@
 import { Body, Controller, Logger, Post, UseGuards } from "@nestjs/common";
 import { CommandBus } from "@nestjs/cqrs";
-import { ApiOperation, ApiTags } from "@nestjs/swagger";
+import {
+  ApiBearerAuth,
+  ApiOperation,
+  ApiResponse,
+  ApiTags,
+} from "@nestjs/swagger";
 
 import { CurrentUser } from "@/common/decorators/current-user.decorator";
 import { SupabaseJwtGuard } from "@/modules/auth/guards/supabase-jwt.guard";
@@ -11,6 +16,7 @@ import { ParseJobDescriptionRequestDto } from "../dto/parse-job-description-requ
 import { ParseJobDescriptionResponseDto } from "../dto/parse-job-description-response.dto";
 import { JobProfileHttpMapper } from "../mappers/job-profile-http.mapper";
 
+@ApiBearerAuth("JWT-auth")
 @ApiTags("job-profiles")
 @Controller("api/v1/job-profiles")
 @UseGuards(SupabaseJwtGuard)
@@ -20,8 +26,26 @@ export class JobProfilesController {
   constructor(private readonly commandBus: CommandBus) {}
 
   @ApiOperation({
-    description: "Parse a job description to create a job profile",
+    description:
+      "Parse a job description to create a job profile. Requires authentication.",
     summary: "Parse job description",
+  })
+  @ApiResponse({
+    description: "Job profile created successfully",
+    status: 201,
+    type: ParseJobDescriptionResponseDto,
+  })
+  @ApiResponse({
+    description: "Bad request (validation error)",
+    status: 400,
+  })
+  @ApiResponse({
+    description: "Unauthorized - invalid or missing JWT token",
+    status: 401,
+  })
+  @ApiResponse({
+    description: "Internal server error",
+    status: 500,
   })
   @Post("parse")
   async parse(
