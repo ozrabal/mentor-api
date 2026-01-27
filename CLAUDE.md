@@ -98,3 +98,43 @@ Copy `.env.example` to `.env` and configure:
 - **CurrentUser decorator** in `src/common/decorators/current-user.decorator.ts` extracts user from JWT
 - **Validation** uses `class-validator` with global `ValidationPipe` (whitelist, transform enabled)
 - **TypeScript strict mode** is enabled with `strictNullChecks` and `noImplicitAny`
+
+## MANDATORY: Iterative Endpoint Implementation
+
+**ALL new endpoints MUST follow the iterative implementation methodology.**
+
+See: `docs/rules/iterative-endpoint-implementation.md` for complete rules.
+
+### 4-Step Implementation Pattern (REQUIRED)
+
+1. **Step 1: Basic Endpoint Structure (Placeholder)**
+   - Create working endpoint with mock data
+   - Can test immediately with curl/Postman
+   - Returns 200 with placeholder response
+
+2. **Step 2: Real Implementation (Repository)**
+   - Replace placeholder with real database queries
+   - Add authorization (404, 403 errors)
+   - Business logic implementation
+
+3. **Step 3: Documentation (Swagger)**
+   - Add full Swagger/OpenAPI documentation
+   - Document all fields, status codes, examples
+   - Visible in Swagger UI
+
+4. **Step 4: Tests + Final Documentation**
+   - Unit tests, E2E tests
+   - README updates
+   - Production ready
+
+### Key Principles
+
+- ✅ **Endpoint First** - Working endpoint in Step 1
+- ✅ **Vertical Slices** - Complete layers per step
+- ✅ **Test After Each Step** - Continuous validation
+- ❌ **Never Waterfall** - Don't build layers in isolation
+
+### Examples
+
+- Parse Job Description: `docs/modules/job-profiles-parse-implementation-plan-iterative.md`
+- Get Job Profile: `docs/modules/job-profiles-get-implementation-plan-iterative.md`
