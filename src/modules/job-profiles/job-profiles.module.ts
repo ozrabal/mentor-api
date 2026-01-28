@@ -6,6 +6,7 @@ import { DatabaseModule } from "@/database/database.module";
 import { AuthModule } from "@/modules/auth/auth.module";
 
 import { ParseJobDescriptionHandler } from "./application/commands/handlers/parse-job-description.handler";
+import { GetJobProfileHandler } from "./application/queries/handlers/get-job-profile.handler";
 import { JOB_PROFILE_REPOSITORY } from "./domain/repositories/job-profile.repository.interface";
 import { JobProfileRepository } from "./infrastructure/persistence/repositories/job-profile.repository";
 import { AiParserService } from "./infrastructure/services/ai-parser.service";
@@ -14,6 +15,7 @@ import { JdExtractorService } from "./infrastructure/services/jd-extractor.servi
 import { JobProfilesController } from "./presentation/http/controllers/job-profiles.controller";
 
 const CommandHandlers = [ParseJobDescriptionHandler];
+const QueryHandlers = [GetJobProfileHandler];
 const Services = [HtmlFetcherService, JdExtractorService, AiParserService];
 const Repositories = [
   {
@@ -25,6 +27,11 @@ const Repositories = [
 @Module({
   controllers: [JobProfilesController],
   imports: [CqrsModule, ConfigModule, DatabaseModule, AuthModule],
-  providers: [...CommandHandlers, ...Services, ...Repositories],
+  providers: [
+    ...CommandHandlers,
+    ...QueryHandlers,
+    ...Services,
+    ...Repositories,
+  ],
 })
 export class JobProfilesModule {}
