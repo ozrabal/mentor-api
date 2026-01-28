@@ -2,6 +2,7 @@ import {
   Body,
   Controller,
   Get,
+  HttpStatus,
   Logger,
   Param,
   Post,
@@ -11,6 +12,7 @@ import { CommandBus, QueryBus } from "@nestjs/cqrs";
 import {
   ApiBearerAuth,
   ApiOperation,
+  ApiParam,
   ApiResponse,
   ApiTags,
 } from "@nestjs/swagger";
@@ -84,6 +86,33 @@ export class JobProfilesController {
     return JobProfileHttpMapper.toParseResponse(result);
   }
 
+  @ApiOperation({
+    description:
+      "Retrieve a job profile by its ID. Users can only access their own job profiles.",
+    summary: "Get job profile by ID",
+  })
+  @ApiParam({
+    description: "UUID of the job profile",
+    example: "550e8400-e29b-41d4-a716-446655440000",
+    name: "jobProfileId",
+  })
+  @ApiResponse({
+    description: "Job profile retrieved successfully",
+    status: HttpStatus.OK,
+    type: GetJobProfileResponseDto,
+  })
+  @ApiResponse({
+    description: "Job profile not found",
+    status: HttpStatus.NOT_FOUND,
+  })
+  @ApiResponse({
+    description: "Access denied - profile belongs to another user",
+    status: HttpStatus.FORBIDDEN,
+  })
+  @ApiResponse({
+    description: "Authentication required",
+    status: HttpStatus.UNAUTHORIZED,
+  })
   @Get(":jobProfileId")
   async getById(
     @Param("jobProfileId") jobProfileId: string,
@@ -91,9 +120,10 @@ export class JobProfilesController {
   ): Promise<GetJobProfileResponseDto> {
     this.logger.log(`Getting job profile ${jobProfileId} for user ${user.id}`);
 
-    const result = await this.queryBus.execute(
-      new GetJobProfileQuery(user.id, jobProfileId),
-    );
+    const result = await this.queryBus.execute<
+      GetJobProfileQuery,
+      JobProfileDto
+    >(new GetJobProfileQuery(user.id, jobProfileId));
 
     return JobProfileHttpMapper.toGetResponse(result);
   }
