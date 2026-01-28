@@ -13,6 +13,11 @@ The Job Profiles module parses job descriptions using AI (via Vercel AI SDK) to 
   - Estimate seniority and interview difficulty
   - Model-agnostic AI parsing (initially configured with Google Gemini)
 
+- **Get Job Profile** (FR-JP-002)
+  - Retrieve job profile by ID
+  - User authorization (can only access own profiles)
+  - Returns complete job profile data including raw JD
+
 ## Architecture
 
 This module follows the **Modular Monolith** architecture with:
@@ -101,6 +106,55 @@ Parse a job description from raw text or URL.
 - `400 Bad Request` - Invalid request body or missing required fields
 - `401 Unauthorized` - Missing or invalid JWT token
 - `500 Internal Server Error` - AI parsing or database error
+
+### GET /api/v1/job-profiles/:jobProfileId
+
+Retrieve a job profile by its ID.
+
+**Authentication:** Required (JWT Bearer token)
+
+**Path Parameters:**
+
+- `jobProfileId` (string, required) - UUID of the job profile
+
+**Response (200 OK):**
+
+```json
+{
+  "id": "550e8400-e29b-41d4-a716-446655440000",
+  "userId": "user-123",
+  "jobTitle": "Senior Software Engineer",
+  "companyName": "Tech Corp",
+  "jobUrl": "https://example.com/job",
+  "rawJD": "We are looking for...",
+  "competencies": [
+    {
+      "name": "System Design",
+      "weight": 0.3,
+      "depth": 8
+    }
+  ],
+  "hardSkills": ["TypeScript", "NestJS", "PostgreSQL"],
+  "softSkills": ["Communication", "Leadership"],
+  "seniorityLevel": 7,
+  "interviewDifficultyLevel": 8,
+  "createdAt": "2026-01-27T10:00:00Z",
+  "updatedAt": "2026-01-27T10:00:00Z"
+}
+```
+
+**Error Responses:**
+
+- `401 Unauthorized` - Missing or invalid JWT token
+- `403 Forbidden` - Job profile belongs to another user
+- `404 Not Found` - Job profile not found or soft-deleted
+
+**Example:**
+
+```bash
+curl -X GET http://localhost:3000/api/v1/job-profiles/550e8400-e29b-41d4-a716-446655440000 \
+  -H "Authorization: Bearer YOUR_JWT_TOKEN"
+```
 
 ## AI Configuration
 
