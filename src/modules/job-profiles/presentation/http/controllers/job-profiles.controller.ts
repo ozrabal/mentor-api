@@ -92,6 +92,73 @@ export class JobProfilesController {
 
   @ApiOperation({
     description:
+      "Retrieve a paginated, filtered, and sorted list of job profiles for the authenticated user. " +
+      "Supports filtering by job title, company name, seniority level, and interview difficulty level. " +
+      "Soft-deleted profiles are excluded.",
+    summary: "List job profiles with filters and sorting",
+  })
+  @ApiResponse({
+    description: "Job profiles retrieved successfully",
+    status: HttpStatus.OK,
+    type: ListJobProfilesResponseDto,
+  })
+  @ApiResponse({
+    description: "Invalid query parameters (e.g., limit > 100 or offset < 0)",
+    status: HttpStatus.BAD_REQUEST,
+  })
+  @ApiResponse({
+    description: "Authentication required",
+    status: HttpStatus.UNAUTHORIZED,
+  })
+  @Get()
+  async list(
+    @Query() queryParams: ListJobProfilesRequestDto,
+    @CurrentUser() user: { id: string },
+  ): Promise<ListJobProfilesResponseDto> {
+    this.logger.log(
+      `Listing job profiles for user ${user.id} (limit: ${queryParams.limit}, offset: ${queryParams.offset}, filters: ${JSON.stringify(
+        {
+          companyName: queryParams.companyName,
+          interviewDifficultyLevelMax: queryParams.interviewDifficultyLevelMax,
+          interviewDifficultyLevelMin: queryParams.interviewDifficultyLevelMin,
+          jobTitle: queryParams.jobTitle,
+          seniorityLevelMax: queryParams.seniorityLevelMax,
+          seniorityLevelMin: queryParams.seniorityLevelMin,
+        },
+      )}, sort: ${queryParams.sortBy}:${queryParams.sortOrder})`,
+    );
+
+    // Build filters from query params
+    const filters = {
+      companyName: queryParams.companyName,
+      interviewDifficultyLevelMax: queryParams.interviewDifficultyLevelMax,
+      interviewDifficultyLevelMin: queryParams.interviewDifficultyLevelMin,
+      jobTitle: queryParams.jobTitle,
+      seniorityLevelMax: queryParams.seniorityLevelMax,
+      seniorityLevelMin: queryParams.seniorityLevelMin,
+    };
+
+    // Build sort options
+    const sort = {
+      direction: queryParams.sortOrder || "desc",
+      field: queryParams.sortBy || "createdAt",
+    };
+
+    const result = await this.queryBus.execute(
+      new ListJobProfilesQuery(
+        user.id,
+        queryParams.limit,
+        queryParams.offset,
+        filters,
+        sort as any,
+      ),
+    );
+
+    return JobProfileHttpMapper.toListResponse(result);
+  }
+
+  @ApiOperation({
+    description:
       "Retrieve a job profile by its ID. Users can only access their own job profiles.",
     summary: "Get job profile by ID",
   })
@@ -117,22 +184,6 @@ export class JobProfilesController {
     description: "Authentication required",
     status: HttpStatus.UNAUTHORIZED,
   })
-  @Get()
-  async list(
-    @Query() queryParams: ListJobProfilesRequestDto,
-    @CurrentUser() user: { id: string },
-  ): Promise<ListJobProfilesResponseDto> {
-    this.logger.log(
-      `Listing job profiles for user ${user.id} (limit: ${queryParams.limit}, offset: ${queryParams.offset})`,
-    );
-
-    const result = await this.queryBus.execute(
-      new ListJobProfilesQuery(user.id, queryParams.limit, queryParams.offset),
-    );
-
-    return JobProfileHttpMapper.toListResponse(result);
-  }
-
   @Get(":jobProfileId")
   async getById(
     @Param("jobProfileId") jobProfileId: string,
