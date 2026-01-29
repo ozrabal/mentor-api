@@ -6,6 +6,7 @@ import {
   Logger,
   Param,
   Post,
+  Query,
   UseGuards,
 } from "@nestjs/common";
 import { CommandBus, QueryBus } from "@nestjs/cqrs";
@@ -23,7 +24,10 @@ import { SupabaseJwtGuard } from "@/modules/auth/guards/supabase-jwt.guard";
 import { ParseJobDescriptionCommand } from "../../../application/commands/impl/parse-job-description.command";
 import { JobProfileDto } from "../../../application/dto/job-profile.dto";
 import { GetJobProfileQuery } from "../../../application/queries/impl/get-job-profile.query";
+import { ListJobProfilesQuery } from "../../../application/queries/impl/list-job-profiles.query";
 import { GetJobProfileResponseDto } from "../dto/get-job-profile-response.dto";
+import { ListJobProfilesRequestDto } from "../dto/list-job-profiles-request.dto";
+import { ListJobProfilesResponseDto } from "../dto/list-job-profiles-response.dto";
 import { ParseJobDescriptionRequestDto } from "../dto/parse-job-description-request.dto";
 import { ParseJobDescriptionResponseDto } from "../dto/parse-job-description-response.dto";
 import { JobProfileHttpMapper } from "../mappers/job-profile-http.mapper";
@@ -113,6 +117,22 @@ export class JobProfilesController {
     description: "Authentication required",
     status: HttpStatus.UNAUTHORIZED,
   })
+  @Get()
+  async list(
+    @Query() queryParams: ListJobProfilesRequestDto,
+    @CurrentUser() user: { id: string },
+  ): Promise<ListJobProfilesResponseDto> {
+    this.logger.log(
+      `Listing job profiles for user ${user.id} (limit: ${queryParams.limit}, offset: ${queryParams.offset})`,
+    );
+
+    const result = await this.queryBus.execute(
+      new ListJobProfilesQuery(user.id, queryParams.limit, queryParams.offset),
+    );
+
+    return JobProfileHttpMapper.toListResponse(result);
+  }
+
   @Get(":jobProfileId")
   async getById(
     @Param("jobProfileId") jobProfileId: string,

@@ -1,0 +1,17 @@
+import { Type } from "class-transformer";
+import { IsInt, IsOptional, Max, Min } from "class-validator";
+
+export class ListJobProfilesRequestDto {
+  @IsInt()
+  @IsOptional()
+  @Max(100)
+  @Min(1)
+  @Type(() => Number)
+  limit?: number = 10;
+
+  @IsInt()
+  @IsOptional()
+  @Min(0)
+  @Type(() => Number)
+  offset?: number = 0;
+}
