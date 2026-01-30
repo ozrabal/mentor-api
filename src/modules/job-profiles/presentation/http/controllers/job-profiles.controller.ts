@@ -14,20 +14,25 @@ import {
   ApiBearerAuth,
   ApiOperation,
   ApiParam,
+  ApiQuery,
   ApiResponse,
   ApiTags,
 } from "@nestjs/swagger";
 
 import { CurrentUser } from "@/common/decorators/current-user.decorator";
+import { PaginatedResponseDto } from "@/common/dto/paginated-response.dto";
 import { SupabaseJwtGuard } from "@/modules/auth/guards/supabase-jwt.guard";
 
 import { ParseJobDescriptionCommand } from "../../../application/commands/impl/parse-job-description.command";
 import { JobProfileDto } from "../../../application/dto/job-profile.dto";
 import { GetJobProfileQuery } from "../../../application/queries/impl/get-job-profile.query";
 import { ListJobProfilesQuery } from "../../../application/queries/impl/list-job-profiles.query";
+import { SearchJobProfilesQuery } from "../../../application/queries/impl/search-job-profiles.query";
 import { GetJobProfileResponseDto } from "../dto/get-job-profile-response.dto";
+import { JobProfileSearchDto } from "../dto/job-profile-search.dto";
 import { ListJobProfilesRequestDto } from "../dto/list-job-profiles-request.dto";
 import { ListJobProfilesResponseDto } from "../dto/list-job-profiles-response.dto";
+import { JobProfileListItemDto } from "../dto/list-job-profiles-response.dto";
 import { ParseJobDescriptionRequestDto } from "../dto/parse-job-description-request.dto";
 import { ParseJobDescriptionResponseDto } from "../dto/parse-job-description-response.dto";
 import { JobProfileHttpMapper } from "../mappers/job-profile-http.mapper";
@@ -92,6 +97,81 @@ export class JobProfilesController {
 
   @ApiOperation({
     description:
+      "Search and filter job profiles for the authenticated user. Supports pagination, filtering by job title, and sorting.",
+    summary: "Search job profiles",
+  })
+  @ApiQuery({
+    description: "Page number for pagination",
+    example: 1,
+    name: "page",
+    required: false,
+    type: Number,
+  })
+  @ApiQuery({
+    description: "Number of items per page (max 100)",
+    example: 10,
+    name: "limit",
+    required: false,
+    type: Number,
+  })
+  @ApiQuery({
+    description: "Filter by job title (partial match, case-insensitive)",
+    example: "Senior Backend Engineer",
+    name: "jobTitle",
+    required: false,
+    type: String,
+  })
+  @ApiQuery({
+    description:
+      "Sort field and direction (format: field:direction, e.g., 'createdAt:desc', 'jobTitle:asc')",
+    example: "createdAt:desc",
+    name: "sort",
+    required: false,
+    type: String,
+  })
+  @ApiResponse({
+    description: "Job profiles retrieved successfully",
+    status: HttpStatus.OK,
+    type: PaginatedResponseDto<JobProfileListItemDto>,
+  })
+  @ApiResponse({
+    description: "Authentication required",
+    status: HttpStatus.UNAUTHORIZED,
+  })
+  @Get()
+  async search(
+    @Query() searchDto: JobProfileSearchDto,
+    @CurrentUser() user: { id: string },
+  ): Promise<PaginatedResponseDto<JobProfileListItemDto>> {
+    this.logger.log(
+      `Searching job profiles for user ${user.id} (page: ${searchDto.page}, limit: ${searchDto.limit})`,
+    );
+
+    // Parse sort parameter
+    let sortOptions: undefined | { direction: "asc" | "desc"; field: string };
+    if (searchDto.sort) {
+      const [field, direction] = searchDto.sort.split(":");
+      sortOptions = {
+        direction: (direction as "asc" | "desc") || "asc",
+        field,
+      };
+    }
+
+    const query = new SearchJobProfilesQuery(
+      user.id,
+      searchDto.page,
+      searchDto.limit,
+      searchDto.jobTitle,
+      sortOptions,
+    );
+
+    const result = await this.queryBus.execute(query);
+
+    return JobProfileHttpMapper.toPaginatedResponseDto(result);
+  }
+
+  @ApiOperation({
+    description:
       "Retrieve a job profile by its ID. Users can only access their own job profiles.",
     summary: "Get job profile by ID",
   })
@@ -117,22 +197,6 @@ export class JobProfilesController {
     description: "Authentication required",
     status: HttpStatus.UNAUTHORIZED,
   })
-  @Get()
-  async list(
-    @Query() queryParams: ListJobProfilesRequestDto,
-    @CurrentUser() user: { id: string },
-  ): Promise<ListJobProfilesResponseDto> {
-    this.logger.log(
-      `Listing job profiles for user ${user.id} (limit: ${queryParams.limit}, offset: ${queryParams.offset})`,
-    );
-
-    const result = await this.queryBus.execute(
-      new ListJobProfilesQuery(user.id, queryParams.limit, queryParams.offset),
-    );
-
-    return JobProfileHttpMapper.toListResponse(result);
-  }
-
   @Get(":jobProfileId")
   async getById(
     @Param("jobProfileId") jobProfileId: string,

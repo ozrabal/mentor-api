@@ -1,3 +1,6 @@
+import { PaginatedResponseDto } from "@/common/dto/paginated-response.dto";
+import { PaginatedResult } from "@/common/dto/paginated-result.dto";
+
 import { JobProfileDto } from "../../../application/dto/job-profile.dto";
 import { PaginatedJobProfilesDto } from "../../../application/queries/handlers/list-job-profiles.handler";
 import { GetJobProfileResponseDto } from "../dto/get-job-profile-response.dto";
@@ -61,6 +64,27 @@ export class JobProfileHttpMapper {
         this.toListItemResponse(profile),
       ),
       total: paginated.total,
+    };
+  }
+
+  static toPaginatedResponseDto(
+    result: PaginatedResult<JobProfileListItemDto>,
+  ): PaginatedResponseDto<JobProfileListItemDto> {
+    return {
+      data: {
+        items: result.items,
+        nextPage: result.nextPage,
+        prevPage: result.prevPage,
+        query: {
+          filters: result.filters,
+          limit: result.limit,
+          page: result.page,
+          sort: result.sort,
+        },
+        totalItems: result.totalItems,
+        totalPages: result.totalPages,
+      },
+      success: true,
     };
   }
 }
