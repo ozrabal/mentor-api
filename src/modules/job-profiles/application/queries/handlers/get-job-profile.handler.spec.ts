@@ -25,6 +25,8 @@ describe("GetJobProfileHandler", () => {
       countByUserId: jest.fn(),
       softDelete: jest.fn(),
       restore: jest.fn(),
+      search: jest.fn(),
+      count: jest.fn(),
     };
 
     const module: TestingModule = await Test.createTestingModule({

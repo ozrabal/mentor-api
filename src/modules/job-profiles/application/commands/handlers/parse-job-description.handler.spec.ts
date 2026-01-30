@@ -27,6 +27,8 @@ describe("ParseJobDescriptionHandler", () => {
       countByUserId: jest.fn(),
       softDelete: jest.fn(),
       restore: jest.fn(),
+      search: jest.fn(),
+      count: jest.fn(),
     };
 
     // Mock HTML fetcher

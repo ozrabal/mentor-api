@@ -1,9 +1,13 @@
 import { JobProfileListItemDto } from "@modules/job-profiles/presentation/http/dto/list-job-profiles-response.dto";
-import { Logger } from "@nestjs/common";
+import { Inject, Logger } from "@nestjs/common";
 import { IQueryHandler, QueryHandler } from "@nestjs/cqrs";
 
 import { PaginatedResult } from "@/common/dto/paginated-result.dto";
 
+import {
+  IJobProfileRepository,
+  JOB_PROFILE_REPOSITORY,
+} from "../../../domain/repositories/job-profile.repository.interface";
 import { SearchJobProfilesQuery } from "../impl/search-job-profiles.query";
 
 @QueryHandler(SearchJobProfilesQuery)
@@ -13,58 +17,71 @@ export class SearchJobProfilesHandler implements IQueryHandler<
 > {
   private readonly logger = new Logger(SearchJobProfilesHandler.name);
 
+  constructor(
+    @Inject(JOB_PROFILE_REPOSITORY)
+    private readonly repository: IJobProfileRepository,
+  ) {}
+
   async execute(
     query: SearchJobProfilesQuery,
   ): Promise<PaginatedResult<JobProfileListItemDto>> {
+    const { jobTitle, limit, page, sort, userId } = query;
+
     this.logger.log(
-      `Searching job profiles for user ${query.userId} (page: ${query.page}, limit: ${query.limit})`,
+      `Searching job profiles for user ${userId} (page: ${page}, limit: ${limit})`,
     );
 
-    // TODO: This is placeholder data - will be replaced in Step 2
-    const mockItems: JobProfileListItemDto[] = [
-      {
-        companyName: "Tech Corp (placeholder)",
-        createdAt: new Date(),
-        id: "profile-1",
-        interviewDifficultyLevel: 5,
-        jobTitle: "Senior Software Engineer (placeholder)",
-        seniorityLevel: 5,
-        updatedAt: new Date(),
-        userId: query.userId,
-      },
-      {
-        companyName: "Startup Inc (placeholder)",
-        createdAt: new Date(),
-        id: "profile-2",
-        interviewDifficultyLevel: 4,
-        jobTitle: "Full Stack Developer (placeholder)",
-        seniorityLevel: 3,
-        updatedAt: new Date(),
-        userId: query.userId,
-      },
-    ];
+    // Calculate offset
+    const offset = (page - 1) * limit;
 
-    // Mock pagination metadata
-    const totalItems = 15;
-    const totalPages = Math.ceil(totalItems / query.limit);
-    const nextPage = query.page < totalPages ? query.page + 1 : null;
-    const prevPage = query.page > 1 ? query.page - 1 : null;
+    // Build filter criteria
+    const filters = {
+      jobTitle,
+      userId,
+    };
 
-    const result: PaginatedResult<JobProfileListItemDto> = {
-      filters: query.jobTitle ? { jobTitle: query.jobTitle } : {},
-      items: mockItems,
-      limit: query.limit,
+    // Build sort options (default to createdAt:desc)
+    const sortOptions = sort
+      ? { direction: sort.direction, field: sort.field }
+      : { direction: "desc" as const, field: "createdAt" };
+
+    // Execute search and count in parallel for performance
+    const [profiles, totalItems] = await Promise.all([
+      this.repository.search(filters, sortOptions, limit, offset),
+      this.repository.count(filters),
+    ]);
+
+    // Calculate pagination metadata
+    const totalPages = Math.ceil(totalItems / limit);
+    const nextPage = page < totalPages ? page + 1 : null;
+    const prevPage = page > 1 ? page - 1 : null;
+
+    // Map domain entities to DTOs
+    const items = profiles.map((profile) => ({
+      companyName: profile.getCompanyName(),
+      createdAt: profile.getCreatedAt(),
+      id: profile.getId().getValue(),
+      interviewDifficultyLevel: profile.getInterviewDifficultyLevel(),
+      jobTitle: profile.getJobTitle(),
+      seniorityLevel: profile.getSeniorityLevel()?.getValue(),
+      updatedAt: profile.getUpdatedAt(),
+      userId: profile.getUserId().getValue(),
+    }));
+
+    this.logger.log(
+      `Successfully fetched ${items.length} profiles (total: ${totalItems})`,
+    );
+
+    return {
+      filters: jobTitle ? { jobTitle } : {},
+      items,
+      limit,
       nextPage,
-      page: query.page,
+      page,
       prevPage,
-      sort: query.sort || { direction: "desc", field: "createdAt" },
+      sort: sortOptions,
       totalItems,
       totalPages,
     };
-
-    this.logger.log(
-      `Returning ${result.items.length} placeholder profiles (total: ${result.totalItems})`,
-    );
-    return result;
   }
 }
