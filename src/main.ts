@@ -56,7 +56,9 @@ async function bootstrap() {
       .build();
 
     const document = SwaggerModule.createDocument(app, config);
-    SwaggerModule.setup("api/docs", app, document);
+    SwaggerModule.setup("api/docs", app, document, {
+      jsonDocumentUrl: "openapi.json",
+    });
 
     console.log(
       `Swagger documentation available at: http://localhost:${port}/api/docs`,
