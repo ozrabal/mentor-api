@@ -94,18 +94,21 @@ export class JobProfilesController {
 
   @ApiOperation({
     description:
-      "Search and filter job profiles for the authenticated user. Supports pagination, filtering by job title, and sorting.",
-    summary: "Search job profiles",
+      "Retrieve a paginated, filtered, and sorted list of job profiles for the authenticated user. " +
+      "Supports filtering by job title (partial match), sorting by various fields, and pagination. " +
+      "Soft-deleted profiles are excluded. " +
+      "Default sort is by creation date (newest first).",
+    summary: "Search and list job profiles",
   })
   @ApiQuery({
-    description: "Page number for pagination",
+    description: "Page number (1-indexed, default: 1)",
     example: 1,
     name: "page",
     required: false,
     type: Number,
   })
   @ApiQuery({
-    description: "Number of items per page (max 100)",
+    description: "Items per page (default: 10, max: 100)",
     example: 10,
     name: "limit",
     required: false,
@@ -120,7 +123,10 @@ export class JobProfilesController {
   })
   @ApiQuery({
     description:
-      "Sort field and direction (format: field:direction, e.g., 'createdAt:desc', 'jobTitle:asc')",
+      'Sort configuration in format "field:direction". ' +
+      "Allowed fields: jobTitle, createdAt, updatedAt, companyName. " +
+      "Direction: asc or desc. " +
+      "Default: createdAt:desc",
     example: "createdAt:desc",
     name: "sort",
     required: false,
@@ -128,11 +134,87 @@ export class JobProfilesController {
   })
   @ApiResponse({
     description: "Job profiles retrieved successfully",
+    schema: {
+      properties: {
+        data: {
+          properties: {
+            items: {
+              items: {
+                properties: {
+                  companyName: { example: "Tech Corp", type: "string" },
+                  createdAt: { format: "date-time", type: "string" },
+                  id: {
+                    example: "550e8400-e29b-41d4-a716-446655440000",
+                    type: "string",
+                  },
+                  interviewDifficultyLevel: { example: 8, type: "number" },
+                  jobTitle: {
+                    example: "Senior Software Engineer",
+                    type: "string",
+                  },
+                  seniorityLevel: { example: 7, type: "number" },
+                  updatedAt: { format: "date-time", type: "string" },
+                  userId: { example: "user-123", type: "string" },
+                },
+                type: "object",
+              },
+              type: "array",
+            },
+            nextPage: { example: 2, nullable: true, type: "number" },
+            prevPage: { example: null, nullable: true, type: "number" },
+            query: {
+              properties: {
+                filters: {
+                  properties: {
+                    jobTitle: { example: "Senior", type: "string" },
+                  },
+                  type: "object",
+                },
+                limit: { example: 10, type: "number" },
+                page: { example: 1, type: "number" },
+                sort: {
+                  properties: {
+                    direction: { example: "desc", type: "string" },
+                    field: { example: "createdAt", type: "string" },
+                  },
+                  type: "object",
+                },
+              },
+              type: "object",
+            },
+            totalItems: { example: 47, type: "number" },
+            totalPages: { example: 5, type: "number" },
+          },
+          type: "object",
+        },
+        success: { example: true, type: "boolean" },
+      },
+      type: "object",
+    },
     status: HttpStatus.OK,
-    type: PaginatedResponseDto<JobProfileListItemDto>,
   })
   @ApiResponse({
-    description: "Authentication required",
+    description:
+      "Invalid query parameters (e.g., page < 1, limit > 100, invalid sort field)",
+    schema: {
+      properties: {
+        error: { example: "Bad Request", type: "string" },
+        message: { example: "Validation failed", type: "string" },
+        statusCode: { example: 400, type: "number" },
+      },
+      type: "object",
+    },
+    status: HttpStatus.BAD_REQUEST,
+  })
+  @ApiResponse({
+    description: "Authentication required (missing or invalid JWT token)",
+    schema: {
+      properties: {
+        message: { example: "Unauthorized", type: "string" },
+        statusCode: { example: 401, type: "number" },
+      },
+      type: "object",
+    },
     status: HttpStatus.UNAUTHORIZED,
   })
   @Get()
