@@ -21,6 +21,7 @@ import {
 
 import { CurrentUser } from "@/common/decorators/current-user.decorator";
 import { PaginatedResponseDto } from "@/common/dto/paginated-response.dto";
+import { PaginatedResult } from "@/common/dto/paginated-result.dto";
 import { SupabaseJwtGuard } from "@/modules/auth/guards/supabase-jwt.guard";
 
 import { ParseJobDescriptionCommand } from "../../../application/commands/impl/parse-job-description.command";
@@ -244,7 +245,10 @@ export class JobProfilesController {
       sortOptions,
     );
 
-    const result = await this.queryBus.execute(query);
+    const result = await this.queryBus.execute<
+      SearchJobProfilesQuery,
+      PaginatedResult<JobProfileListItemDto>
+    >(query);
 
     return JobProfileHttpMapper.toPaginatedResponseDto(result);
   }

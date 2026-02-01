@@ -3,13 +3,35 @@ import {
   BadRequestException,
   Injectable,
   PipeTransform,
+  Type,
 } from "@nestjs/common";
 import { plainToClass } from "class-transformer";
 import { validate } from "class-validator";
 
+interface DtoWithValidation {
+  validateSortField?: () => boolean;
+}
+
+interface TransformedQuery {
+  [key: string]: unknown;
+  pagination: {
+    limit?: number;
+    page?: number;
+  };
+  sortOptions?: {
+    sort: {
+      direction: string;
+      field: string;
+    };
+  };
+}
+
 @Injectable()
 export class SearchTransformPipe implements PipeTransform {
-  async transform(value: any, metadata: ArgumentMetadata) {
+  async transform(
+    value: Record<string, unknown>,
+    metadata: ArgumentMetadata,
+  ): Promise<unknown> {
     if (!metadata.metatype) {
       return value;
     }
@@ -18,10 +40,13 @@ export class SearchTransformPipe implements PipeTransform {
     const transformed = this.transformQueryParams(value);
 
     // Convert to DTO class
-    const dto = plainToClass(metadata.metatype, transformed);
+    const dto = plainToClass(
+      metadata.metatype as Type<unknown>,
+      transformed,
+    ) as DtoWithValidation;
 
     // Validate
-    const errors = await validate(dto);
+    const errors = await validate(dto as object);
     if (errors.length > 0) {
       throw new BadRequestException("Validation failed", errors.toString());
     }
@@ -34,22 +59,33 @@ export class SearchTransformPipe implements PipeTransform {
     return dto;
   }
 
-  private transformQueryParams(query: any): any {
-    const transformed: any = {
+  private transformQueryParams(
+    query: Record<string, unknown>,
+  ): TransformedQuery {
+    const transformed: TransformedQuery = {
       pagination: {},
     };
 
     // Extract pagination parameters (convert to numbers)
     if (query.page !== undefined) {
-      transformed.pagination.page = parseInt(query.page, 10);
+      const pageValue =
+        typeof query.page === "string" || typeof query.page === "number"
+          ? String(query.page)
+          : "";
+      transformed.pagination.page = parseInt(pageValue, 10);
     }
     if (query.limit !== undefined) {
-      transformed.pagination.limit = parseInt(query.limit, 10);
+      const limitValue =
+        typeof query.limit === "string" || typeof query.limit === "number"
+          ? String(query.limit)
+          : "";
+      transformed.pagination.limit = parseInt(limitValue, 10);
     }
 
     // Extract sort parameter (format: "field:direction")
     if (query.sort) {
-      const [field, direction] = query.sort.split(":");
+      const sortValue = typeof query.sort === "string" ? query.sort : "";
+      const [field, direction] = sortValue.split(":");
       transformed.sortOptions = {
         sort: {
           direction: direction || "asc",

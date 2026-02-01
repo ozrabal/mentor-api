@@ -13,7 +13,7 @@ export interface PaginatedJobProfilesDto {
 export class ListJobProfilesHandler implements IQueryHandler<ListJobProfilesQuery> {
   private readonly logger = new Logger(ListJobProfilesHandler.name);
 
-  async execute(query: ListJobProfilesQuery): Promise<PaginatedJobProfilesDto> {
+  execute(query: ListJobProfilesQuery): Promise<PaginatedJobProfilesDto> {
     this.logger.log(
       `Listing job profiles for user ${query.userId} (limit: ${query.limit}, offset: ${query.offset})`,
     );
@@ -66,6 +66,6 @@ export class ListJobProfilesHandler implements IQueryHandler<ListJobProfilesQuer
     this.logger.log(
       `Returning ${mockResponse.profiles.length} placeholder profiles (total: ${mockResponse.total})`,
     );
-    return mockResponse;
+    return Promise.resolve(mockResponse);
   }
 }

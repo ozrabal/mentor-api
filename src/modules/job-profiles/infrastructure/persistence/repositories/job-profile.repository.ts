@@ -1,5 +1,17 @@
+import type { PgColumn } from "drizzle-orm/pg-core";
+
 import { Inject, Injectable } from "@nestjs/common";
-import { and, asc, desc, eq, isNull, sql } from "drizzle-orm";
+import {
+  and,
+  AnyColumn,
+  asc,
+  desc,
+  eq,
+  isNull,
+  SQL,
+  sql,
+  SQLWrapper,
+} from "drizzle-orm";
 
 import { DRIZZLE_DB, DrizzleDb } from "@/database/database.service";
 import { jobProfiles } from "@/database/schema";
@@ -132,7 +144,7 @@ export class JobProfileRepository implements IJobProfileRepository {
     const result = await this.db
       .select()
       .from(jobProfiles)
-      .where(and(...conditions))
+      .where(conditions.length > 0 ? and(...conditions) : undefined)
       .orderBy(orderByClause)
       .limit(limit)
       .offset(offset);
@@ -146,13 +158,15 @@ export class JobProfileRepository implements IJobProfileRepository {
     const result = await this.db
       .select({ count: sql<number>`count(*)` })
       .from(jobProfiles)
-      .where(and(...conditions));
+      .where(conditions.length > 0 ? and(...conditions) : undefined);
 
     return result[0]?.count ?? 0;
   }
 
-  private buildFilterConditions(filters: SearchFilters): any[] {
-    const conditions: any[] = [];
+  private buildFilterConditions(
+    filters: SearchFilters,
+  ): Array<SQL | SQLWrapper> {
+    const conditions: Array<SQL | SQLWrapper> = [];
 
     // Always filter by user ID
     conditions.push(eq(jobProfiles.userId, filters.userId));
@@ -170,7 +184,7 @@ export class JobProfileRepository implements IJobProfileRepository {
     return conditions;
   }
 
-  private buildSortClause(sort: SortOptions): any {
+  private buildSortClause(sort: SortOptions): SQL {
     // Map sort field to database column
     const sortColumn = this.getSortColumn(sort.field);
 
@@ -178,15 +192,20 @@ export class JobProfileRepository implements IJobProfileRepository {
     return sort.direction === "desc" ? desc(sortColumn) : asc(sortColumn);
   }
 
-  private getSortColumn(field: string): any {
+  private getSortColumn(field: string): AnyColumn | SQLWrapper {
     // Map domain field names to database columns
-    const columnMap: Record<string, any> = {
+    type JobProfileColumn = typeof jobProfiles.$inferSelect;
+    type ColumnMap = {
+      [K in keyof JobProfileColumn]?: PgColumn;
+    };
+
+    const columnMap: ColumnMap & Record<string, PgColumn> = {
       companyName: jobProfiles.companyName,
       createdAt: jobProfiles.createdAt,
       jobTitle: jobProfiles.jobTitle,
       updatedAt: jobProfiles.updatedAt,
     };
 
-    return columnMap[field] || jobProfiles.createdAt;
+    return columnMap[field] ?? jobProfiles.createdAt;
   }
 }
