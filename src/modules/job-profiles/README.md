@@ -18,6 +18,13 @@ The Job Profiles module parses job descriptions using AI (via Vercel AI SDK) to 
   - User authorization (can only access own profiles)
   - Returns complete job profile data including raw JD
 
+- **List Job Profiles** (FR-JP-003)
+  - Search and list job profiles with filtering, sorting, and pagination
+  - Filter by job title (partial match, case-insensitive)
+  - Sort by multiple fields (jobTitle, createdAt, updatedAt, companyName)
+  - Page-based pagination with metadata
+  - Returns lightweight list items (excludes rawJD and detailed competencies)
+
 ## Architecture
 
 This module follows the **Modular Monolith** architecture with:
@@ -153,6 +160,104 @@ Retrieve a job profile by its ID.
 
 ```bash
 curl -X GET http://localhost:3000/api/v1/job-profiles/550e8400-e29b-41d4-a716-446655440000 \
+  -H "Authorization: Bearer YOUR_JWT_TOKEN"
+```
+
+### GET /api/v1/job-profiles
+
+Retrieve a paginated, filtered, and sorted list of job profiles for the authenticated user.
+
+**Authentication:** Required (JWT Bearer token)
+
+**Query Parameters:**
+
+- `page` (number, optional) - Page number (1-indexed, default: 1, min: 1)
+- `limit` (number, optional) - Items per page (default: 10, min: 1, max: 100)
+- `jobTitle` (string, optional) - Filter by job title (partial match, case-insensitive)
+- `sort` (string, optional) - Sort configuration in format `"field:direction"` (default: `createdAt:desc`)
+  - Allowed fields: `jobTitle`, `createdAt`, `updatedAt`, `companyName`
+  - Direction: `asc` or `desc`
+
+**Response (200 OK):**
+
+```json
+{
+  "success": true,
+  "data": {
+    "items": [
+      {
+        "id": "550e8400-e29b-41d4-a716-446655440000",
+        "userId": "user-123",
+        "jobTitle": "Senior Software Engineer",
+        "companyName": "Tech Corp",
+        "seniorityLevel": 7,
+        "interviewDifficultyLevel": 8,
+        "createdAt": "2026-01-27T10:00:00Z",
+        "updatedAt": "2026-01-27T10:00:00Z"
+      },
+      {
+        "id": "660e8400-e29b-41d4-a716-446655440001",
+        "userId": "user-123",
+        "jobTitle": "Full Stack Developer",
+        "companyName": "Startup Inc",
+        "seniorityLevel": 5,
+        "interviewDifficultyLevel": 6,
+        "createdAt": "2026-01-26T14:30:00Z",
+        "updatedAt": "2026-01-26T14:30:00Z"
+      }
+    ],
+    "nextPage": 2,
+    "prevPage": null,
+    "totalItems": 47,
+    "totalPages": 5,
+    "query": {
+      "page": 1,
+      "limit": 10,
+      "filters": {},
+      "sort": {
+        "field": "createdAt",
+        "direction": "desc"
+      }
+    }
+  }
+}
+```
+
+**Notes:**
+
+- Profiles are returned in reverse chronological order by default (newest first)
+- Soft-deleted profiles are excluded from results
+- Only profiles owned by the authenticated user are returned
+- The `totalItems` field indicates the total number of profiles matching the filters
+- The `query` object echoes back the applied filters and sort options
+
+**Error Responses:**
+
+- `400 Bad Request` - Invalid query parameters (e.g., page < 1, limit > 100)
+- `401 Unauthorized` - Missing or invalid JWT token
+- `500 Internal Server Error` - Database or server error
+
+**Examples:**
+
+```bash
+# Get first 10 profiles (default)
+curl -X GET "http://localhost:3000/api/v1/job-profiles" \
+  -H "Authorization: Bearer YOUR_JWT_TOKEN"
+
+# Get profiles with custom pagination
+curl -X GET "http://localhost:3000/api/v1/job-profiles?page=2&limit=5" \
+  -H "Authorization: Bearer YOUR_JWT_TOKEN"
+
+# Filter by job title
+curl -X GET "http://localhost:3000/api/v1/job-profiles?jobTitle=Senior" \
+  -H "Authorization: Bearer YOUR_JWT_TOKEN"
+
+# Sort by job title (ascending)
+curl -X GET "http://localhost:3000/api/v1/job-profiles?sort=jobTitle:asc" \
+  -H "Authorization: Bearer YOUR_JWT_TOKEN"
+
+# Combination of filters, sorting, and pagination
+curl -X GET "http://localhost:3000/api/v1/job-profiles?page=1&limit=10&jobTitle=Engineer&sort=createdAt:desc" \
   -H "Authorization: Bearer YOUR_JWT_TOKEN"
 ```
 
