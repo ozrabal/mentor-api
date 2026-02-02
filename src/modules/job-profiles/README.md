@@ -25,6 +25,12 @@ The Job Profiles module parses job descriptions using AI (via Vercel AI SDK) to 
   - Page-based pagination with metadata
   - Returns lightweight list items (excludes rawJD and detailed competencies)
 
+- **Delete Job Profile** (FR-JP-004)
+  - Soft delete job profile by ID
+  - User authorization (can only delete own profiles)
+  - Soft-deleted profiles excluded from all queries
+  - Returns 204 No Content on success
+
 ## Architecture
 
 This module follows the **Modular Monolith** architecture with:
@@ -161,6 +167,43 @@ Retrieve a job profile by its ID.
 ```bash
 curl -X GET http://localhost:3000/api/v1/job-profiles/550e8400-e29b-41d4-a716-446655440000 \
   -H "Authorization: Bearer YOUR_JWT_TOKEN"
+```
+
+### DELETE /api/v1/job-profiles/:jobProfileId
+
+Soft delete a job profile by its ID.
+
+**Authentication:** Required (JWT Bearer token)
+
+**Path Parameters:**
+
+- `jobProfileId` (string, required) - UUID of the job profile to delete
+
+**Response (204 No Content):**
+
+No content returned on success.
+
+**Error Responses:**
+
+- `401 Unauthorized` - Missing or invalid JWT token
+- `403 Forbidden` - Job profile belongs to another user
+- `404 Not Found` - Job profile not found or already soft-deleted
+
+**Behavior:**
+
+- Soft delete: Sets `deleted_at` timestamp, does not physically remove record
+- Soft-deleted profiles are excluded from all GET/LIST queries
+- Attempting to delete an already deleted profile returns 404
+- Only the profile owner can delete their own profiles
+
+**Example:**
+
+```bash
+curl -X DELETE http://localhost:3000/api/v1/job-profiles/550e8400-e29b-41d4-a716-446655440000 \
+  -H "Authorization: Bearer YOUR_JWT_TOKEN" \
+  -v
+
+# Success: HTTP/1.1 204 No Content
 ```
 
 ### GET /api/v1/job-profiles
