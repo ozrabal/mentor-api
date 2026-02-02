@@ -299,6 +299,57 @@ export class JobProfilesController {
     return JobProfileHttpMapper.toGetResponse(result);
   }
 
+  @ApiOperation({
+    description:
+      "Soft delete a job profile by its ID. This marks the profile as deleted but does not remove it from the database. " +
+      "Users can only delete their own job profiles. " +
+      "Soft-deleted profiles are excluded from all queries and cannot be accessed via GET endpoints.",
+    summary: "Soft delete job profile by ID",
+  })
+  @ApiParam({
+    description: "UUID of the job profile to delete",
+    example: "550e8400-e29b-41d4-a716-446655440000",
+    name: "jobProfileId",
+  })
+  @ApiResponse({
+    description: "Job profile soft deleted successfully. No content returned.",
+    status: HttpStatus.NO_CONTENT,
+  })
+  @ApiResponse({
+    description: "Job profile not found or already soft-deleted",
+    schema: {
+      properties: {
+        error: { example: "Not Found", type: "string" },
+        message: { example: "Job profile not found", type: "string" },
+        statusCode: { example: 404, type: "number" },
+      },
+      type: "object",
+    },
+    status: HttpStatus.NOT_FOUND,
+  })
+  @ApiResponse({
+    description: "Access denied - profile belongs to another user",
+    schema: {
+      properties: {
+        error: { example: "Forbidden", type: "string" },
+        message: { example: "Access denied", type: "string" },
+        statusCode: { example: 403, type: "number" },
+      },
+      type: "object",
+    },
+    status: HttpStatus.FORBIDDEN,
+  })
+  @ApiResponse({
+    description: "Authentication required - missing or invalid JWT token",
+    schema: {
+      properties: {
+        message: { example: "Unauthorized", type: "string" },
+        statusCode: { example: 401, type: "number" },
+      },
+      type: "object",
+    },
+    status: HttpStatus.UNAUTHORIZED,
+  })
   @Delete(":jobProfileId")
   @HttpCode(HttpStatus.NO_CONTENT)
   async delete(
