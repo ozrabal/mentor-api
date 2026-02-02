@@ -12,6 +12,7 @@ import { Test, TestingModule } from "@nestjs/testing";
 import { PaginatedResult } from "@/common/dto/paginated-result.dto";
 import { SupabaseJwtGuard } from "@/modules/auth/guards/supabase-jwt.guard";
 
+import { SoftDeleteJobProfileCommand } from "../../../application/commands/impl/soft-delete-job-profile.command";
 import { JobProfileDto } from "../../../application/dto/job-profile.dto";
 import { GetJobProfileQuery } from "../../../application/queries/impl/get-job-profile.query";
 import { SearchJobProfilesQuery } from "../../../application/queries/impl/search-job-profiles.query";
@@ -485,6 +486,79 @@ describe("JobProfilesController", () => {
       const result = await controller.parse(parseDto, user);
 
       expect(result.id).toBe("new-profile");
+    });
+  });
+
+  describe("delete", () => {
+    it("should soft delete job profile for authenticated user", async () => {
+      // Arrange
+      const userId = "user-123";
+      const jobProfileId = "550e8400-e29b-41d4-a716-446655440000";
+      const user = { id: userId };
+
+      commandBus.execute.mockResolvedValue(undefined);
+
+      // Act
+      const result = await controller.delete(jobProfileId, user);
+
+      // Assert
+      expect(commandBus.execute).toHaveBeenCalledWith(
+        expect.any(SoftDeleteJobProfileCommand),
+      );
+      expect(result).toBeUndefined();
+    });
+
+    it("should pass correct parameters to command", async () => {
+      // Arrange
+      const userId = "user-789";
+      const jobProfileId = "660e8400-e29b-41d4-a716-446655440001";
+      const user = { id: userId };
+
+      commandBus.execute.mockResolvedValue(undefined);
+
+      // Act
+      await controller.delete(jobProfileId, user);
+
+      // Assert
+      const executedCommand = commandBus.execute.mock
+        .calls[0][0] as SoftDeleteJobProfileCommand;
+      expect(executedCommand.userId).toBe(userId);
+      expect(executedCommand.jobProfileId).toBe(jobProfileId);
+    });
+
+    it("should handle command bus errors", async () => {
+      // Arrange
+      const userId = "user-error";
+      const jobProfileId = "550e8400-e29b-41d4-a716-446655440000";
+      const user = { id: userId };
+      const error = new Error("Repository error");
+
+      commandBus.execute.mockRejectedValue(error);
+
+      // Act & Assert
+      await expect(controller.delete(jobProfileId, user)).rejects.toThrow(
+        "Repository error",
+      );
+    });
+
+    it("should create SoftDeleteJobProfileCommand with user and profile IDs", async () => {
+      // Arrange
+      const userId = "specific-user-id";
+      const jobProfileId = "specific-profile-id";
+      const user = { id: userId };
+
+      commandBus.execute.mockResolvedValue(undefined);
+
+      // Act
+      await controller.delete(jobProfileId, user);
+
+      // Assert
+      expect(commandBus.execute).toHaveBeenCalledTimes(1);
+      const command = commandBus.execute.mock
+        .calls[0][0] as SoftDeleteJobProfileCommand;
+      expect(command).toBeInstanceOf(SoftDeleteJobProfileCommand);
+      expect(command.userId).toBe(userId);
+      expect(command.jobProfileId).toBe(jobProfileId);
     });
   });
 });
