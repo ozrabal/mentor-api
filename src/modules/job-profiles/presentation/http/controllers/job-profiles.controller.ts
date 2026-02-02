@@ -7,6 +7,7 @@ import {
   HttpStatus,
   Logger,
   Param,
+  ParseUUIDPipe,
   Post,
   Query,
   UseGuards,
@@ -285,7 +286,7 @@ export class JobProfilesController {
   })
   @Get(":jobProfileId")
   async getById(
-    @Param("jobProfileId") jobProfileId: string,
+    @Param("jobProfileId", ParseUUIDPipe) jobProfileId: string,
     @CurrentUser() user: { email: string; id: string; identityId?: string },
   ): Promise<GetJobProfileResponseDto> {
     this.logger.log(`Getting job profile ${jobProfileId} for user ${user.id}`);
@@ -301,7 +302,7 @@ export class JobProfilesController {
   @Delete(":jobProfileId")
   @HttpCode(HttpStatus.NO_CONTENT)
   async delete(
-    @Param("jobProfileId") jobProfileId: string,
+    @Param("jobProfileId", ParseUUIDPipe) jobProfileId: string,
     @CurrentUser() user: { id: string },
   ): Promise<void> {
     this.logger.log(`Deleting job profile ${jobProfileId} for user ${user.id}`);
