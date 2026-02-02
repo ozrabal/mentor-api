@@ -8,6 +8,7 @@ import {
   Logger,
   Param,
   ParseUUIDPipe,
+  Patch,
   Post,
   Query,
   UseGuards,
@@ -29,6 +30,7 @@ import { SupabaseJwtGuard } from "@/modules/auth/guards/supabase-jwt.guard";
 
 import { ParseJobDescriptionCommand } from "../../../application/commands/impl/parse-job-description.command";
 import { SoftDeleteJobProfileCommand } from "../../../application/commands/impl/soft-delete-job-profile.command";
+import { UpdateJobProfileCommand } from "../../../application/commands/impl/update-job-profile.command";
 import { JobProfileDto } from "../../../application/dto/job-profile.dto";
 import { GetJobProfileQuery } from "../../../application/queries/impl/get-job-profile.query";
 import { SearchJobProfilesQuery } from "../../../application/queries/impl/search-job-profiles.query";
@@ -37,6 +39,8 @@ import { JobProfileSearchDto } from "../dto/job-profile-search.dto";
 import { JobProfileListItemDto } from "../dto/list-job-profiles-response.dto";
 import { ParseJobDescriptionRequestDto } from "../dto/parse-job-description-request.dto";
 import { ParseJobDescriptionResponseDto } from "../dto/parse-job-description-response.dto";
+import { UpdateJobProfileRequestDto } from "../dto/update-job-profile-request.dto";
+import { UpdateJobProfileResponseDto } from "../dto/update-job-profile-response.dto";
 import { JobProfileHttpMapper } from "../mappers/job-profile-http.mapper";
 
 @ApiBearerAuth("JWT-auth")
@@ -297,6 +301,34 @@ export class JobProfilesController {
     >(new GetJobProfileQuery(user.id, jobProfileId));
 
     return JobProfileHttpMapper.toGetResponse(result);
+  }
+
+  @Patch(":jobProfileId")
+  async update(
+    @Param("jobProfileId", ParseUUIDPipe) jobProfileId: string,
+    @Body() dto: UpdateJobProfileRequestDto,
+    @CurrentUser() user: { id: string },
+  ): Promise<UpdateJobProfileResponseDto> {
+    this.logger.log(`Updating job profile ${jobProfileId} for user ${user.id}`);
+
+    const command = new UpdateJobProfileCommand(
+      user.id,
+      jobProfileId,
+      dto.jobTitle,
+      dto.companyName,
+      dto.competencies,
+      dto.hardSkills,
+      dto.softSkills,
+      dto.seniorityLevel,
+      dto.interviewDifficultyLevel,
+    );
+
+    const result = await this.commandBus.execute<
+      UpdateJobProfileCommand,
+      JobProfileDto
+    >(command);
+
+    return JobProfileHttpMapper.toUpdateResponse(result);
   }
 
   @ApiOperation({

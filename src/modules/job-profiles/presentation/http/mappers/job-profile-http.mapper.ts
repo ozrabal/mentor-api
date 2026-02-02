@@ -9,6 +9,7 @@ import {
   ListJobProfilesResponseDto,
 } from "../dto/list-job-profiles-response.dto";
 import { ParseJobDescriptionResponseDto } from "../dto/parse-job-description-response.dto";
+import { UpdateJobProfileResponseDto } from "../dto/update-job-profile-response.dto";
 
 export class JobProfileHttpMapper {
   static toParseResponse(dto: JobProfileDto): ParseJobDescriptionResponseDto {
@@ -85,6 +86,24 @@ export class JobProfileHttpMapper {
         totalPages: result.totalPages,
       },
       success: true,
+    };
+  }
+
+  static toUpdateResponse(dto: JobProfileDto): UpdateJobProfileResponseDto {
+    return {
+      companyName: dto.companyName,
+      competencies: dto.competencies,
+      createdAt: dto.createdAt,
+      hardSkills: dto.hardSkills,
+      id: dto.id,
+      interviewDifficultyLevel: dto.interviewDifficultyLevel,
+      jobTitle: dto.jobTitle,
+      jobUrl: dto.jobUrl,
+      rawJD: dto.rawJD,
+      seniorityLevel: dto.seniorityLevel,
+      softSkills: dto.softSkills,
+      updatedAt: dto.updatedAt,
+      userId: dto.userId,
     };
   }
 }
