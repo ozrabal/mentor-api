@@ -6,6 +6,7 @@ import { DatabaseModule } from "@/database/database.module";
 import { AuthModule } from "@/modules/auth/auth.module";
 
 import { ParseJobDescriptionHandler } from "./application/commands/handlers/parse-job-description.handler";
+import { SoftDeleteJobProfileHandler } from "./application/commands/handlers/soft-delete-job-profile.handler";
 import { GetJobProfileHandler } from "./application/queries/handlers/get-job-profile.handler";
 import { ListJobProfilesHandler } from "./application/queries/handlers/list-job-profiles.handler";
 import { SearchJobProfilesHandler } from "./application/queries/handlers/search-job-profiles.handler";
@@ -16,7 +17,10 @@ import { HtmlFetcherService } from "./infrastructure/services/html-fetcher.servi
 import { JdExtractorService } from "./infrastructure/services/jd-extractor.service";
 import { JobProfilesController } from "./presentation/http/controllers/job-profiles.controller";
 
-const CommandHandlers = [ParseJobDescriptionHandler];
+const CommandHandlers = [
+  ParseJobDescriptionHandler,
+  SoftDeleteJobProfileHandler,
+];
 const QueryHandlers = [
   GetJobProfileHandler,
   ListJobProfilesHandler,

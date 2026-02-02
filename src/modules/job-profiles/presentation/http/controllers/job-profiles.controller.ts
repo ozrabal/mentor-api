@@ -1,7 +1,9 @@
 import {
   Body,
   Controller,
+  Delete,
   Get,
+  HttpCode,
   HttpStatus,
   Logger,
   Param,
@@ -25,6 +27,7 @@ import { PaginatedResult } from "@/common/dto/paginated-result.dto";
 import { SupabaseJwtGuard } from "@/modules/auth/guards/supabase-jwt.guard";
 
 import { ParseJobDescriptionCommand } from "../../../application/commands/impl/parse-job-description.command";
+import { SoftDeleteJobProfileCommand } from "../../../application/commands/impl/soft-delete-job-profile.command";
 import { JobProfileDto } from "../../../application/dto/job-profile.dto";
 import { GetJobProfileQuery } from "../../../application/queries/impl/get-job-profile.query";
 import { SearchJobProfilesQuery } from "../../../application/queries/impl/search-job-profiles.query";
@@ -293,5 +296,17 @@ export class JobProfilesController {
     >(new GetJobProfileQuery(user.id, jobProfileId));
 
     return JobProfileHttpMapper.toGetResponse(result);
+  }
+
+  @Delete(":jobProfileId")
+  @HttpCode(HttpStatus.NO_CONTENT)
+  async delete(
+    @Param("jobProfileId") jobProfileId: string,
+    @CurrentUser() user: { id: string },
+  ): Promise<void> {
+    this.logger.log(`Deleting job profile ${jobProfileId} for user ${user.id}`);
+
+    const command = new SoftDeleteJobProfileCommand(user.id, jobProfileId);
+    await this.commandBus.execute(command);
   }
 }
