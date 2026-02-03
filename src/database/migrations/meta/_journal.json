@@ -8,6 +8,13 @@
       "when": 1768761422460,
       "tag": "0000_awesome_richard_fisk",
       "breakpoints": true
+    },
+    {
+      "idx": 1,
+      "version": "5",
+      "when": 1770150324690,
+      "tag": "0001_add_job_profiles_user_id_active_index",
+      "breakpoints": true
     }
   ]
 }

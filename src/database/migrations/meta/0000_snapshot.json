@@ -1,10 +1,8 @@
 {
-  "id": "ff74a2db-db4e-4006-8afb-d3e7a4f71ed6",
-  "prevId": "00000000-0000-0000-0000-000000000000",
-  "version": "5",
-  "dialect": "pg",
+  "version": "7",
+  "dialect": "postgresql",
   "tables": {
-    "interview_reports": {
+    "public.interview_reports": {
       "name": "interview_reports",
       "schema": "",
       "columns": {
@@ -70,29 +68,32 @@
         "interview_reports_interview_session_id_interview_sessions_id_fk": {
           "name": "interview_reports_interview_session_id_interview_sessions_id_fk",
           "tableFrom": "interview_reports",
-          "tableTo": "interview_sessions",
           "columnsFrom": [
             "interview_session_id"
           ],
+          "tableTo": "interview_sessions",
           "columnsTo": [
             "id"
           ],
-          "onDelete": "no action",
-          "onUpdate": "no action"
+          "onUpdate": "no action",
+          "onDelete": "no action"
         }
       },
       "compositePrimaryKeys": {},
       "uniqueConstraints": {
         "interview_reports_interview_session_id_unique": {
           "name": "interview_reports_interview_session_id_unique",
-          "nullsNotDistinct": false,
           "columns": [
             "interview_session_id"
-          ]
+          ],
+          "nullsNotDistinct": false
         }
-      }
+      },
+      "policies": {},
+      "isRLSEnabled": false,
+      "checkConstraints": {}
     },
-    "interview_sessions": {
+    "public.interview_sessions": {
       "name": "interview_sessions",
       "schema": "",
       "columns": {
@@ -200,34 +201,37 @@
         "interview_sessions_job_profile_id_job_profiles_id_fk": {
           "name": "interview_sessions_job_profile_id_job_profiles_id_fk",
           "tableFrom": "interview_sessions",
-          "tableTo": "job_profiles",
           "columnsFrom": [
             "job_profile_id"
           ],
+          "tableTo": "job_profiles",
           "columnsTo": [
             "id"
           ],
-          "onDelete": "no action",
-          "onUpdate": "no action"
+          "onUpdate": "no action",
+          "onDelete": "no action"
         },
         "interview_sessions_user_id_users_id_fk": {
           "name": "interview_sessions_user_id_users_id_fk",
           "tableFrom": "interview_sessions",
-          "tableTo": "users",
           "columnsFrom": [
             "user_id"
           ],
+          "tableTo": "users",
           "columnsTo": [
             "id"
           ],
-          "onDelete": "no action",
-          "onUpdate": "no action"
+          "onUpdate": "no action",
+          "onDelete": "no action"
         }
       },
       "compositePrimaryKeys": {},
-      "uniqueConstraints": {}
+      "uniqueConstraints": {},
+      "policies": {},
+      "isRLSEnabled": false,
+      "checkConstraints": {}
     },
-    "job_profiles": {
+    "public.job_profiles": {
       "name": "job_profiles",
       "schema": "",
       "columns": {
@@ -324,21 +328,24 @@
         "job_profiles_user_id_users_id_fk": {
           "name": "job_profiles_user_id_users_id_fk",
           "tableFrom": "job_profiles",
-          "tableTo": "users",
           "columnsFrom": [
             "user_id"
           ],
+          "tableTo": "users",
           "columnsTo": [
             "id"
           ],
-          "onDelete": "no action",
-          "onUpdate": "no action"
+          "onUpdate": "no action",
+          "onDelete": "no action"
         }
       },
       "compositePrimaryKeys": {},
-      "uniqueConstraints": {}
+      "uniqueConstraints": {},
+      "policies": {},
+      "isRLSEnabled": false,
+      "checkConstraints": {}
     },
-    "question_pool": {
+    "public.question_pool": {
       "name": "question_pool",
       "schema": "",
       "columns": {
@@ -390,9 +397,12 @@
       "indexes": {},
       "foreignKeys": {},
       "compositePrimaryKeys": {},
-      "uniqueConstraints": {}
+      "uniqueConstraints": {},
+      "policies": {},
+      "isRLSEnabled": false,
+      "checkConstraints": {}
     },
-    "users": {
+    "public.users": {
       "name": "users",
       "schema": "",
       "columns": {
@@ -442,19 +452,28 @@
       "uniqueConstraints": {
         "users_email_unique": {
           "name": "users_email_unique",
-          "nullsNotDistinct": false,
           "columns": [
             "email"
-          ]
+          ],
+          "nullsNotDistinct": false
         }
-      }
+      },
+      "policies": {},
+      "isRLSEnabled": false,
+      "checkConstraints": {}
     }
   },
   "enums": {},
   "schemas": {},
   "_meta": {
-    "columns": {},
     "schemas": {},
-    "tables": {}
-  }
+    "tables": {},
+    "columns": {}
+  },
+  "id": "ff74a2db-db4e-4006-8afb-d3e7a4f71ed6",
+  "prevId": "00000000-0000-0000-0000-000000000000",
+  "sequences": {},
+  "policies": {},
+  "views": {},
+  "roles": {}
 }

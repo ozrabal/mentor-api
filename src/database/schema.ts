@@ -12,7 +12,9 @@
  * The database module will then aggregate schemas from all modules.
  */
 
+import { sql } from "drizzle-orm";
 import {
+  index,
   integer,
   jsonb,
   pgTable,
@@ -38,31 +40,39 @@ export const users = pgTable("users", {
 });
 
 // job_profiles
-export const jobProfiles = pgTable("job_profiles", {
-  companyName: varchar("company_name", { length: 255 }),
-  competencies:
-    jsonb("competencies").$type<
-      Array<{ depth: number; name: string; weight: number }>
-    >(),
-  createdAt: timestamp("created_at", { withTimezone: false })
-    .defaultNow()
-    .notNull(),
-  deletedAt: timestamp("deleted_at", { withTimezone: false }), // Soft delete
-  hardSkills: jsonb("hard_skills").$type<string[]>(),
-  id: uuid("id").defaultRandom().primaryKey(),
-  interviewDifficultyLevel: real("interview_difficulty_level"),
-  jobTitle: varchar("job_title", { length: 255 }),
-  jobUrl: text("job_url"),
-  rawJd: text("raw_jd"),
-  seniorityLevel: integer("seniority_level"),
-  softSkills: jsonb("soft_skills").$type<string[]>(),
-  updatedAt: timestamp("updated_at", { withTimezone: false })
-    .defaultNow()
-    .notNull(),
-  userId: uuid("user_id")
-    .notNull()
-    .references(() => users.id),
-});
+export const jobProfiles = pgTable(
+  "job_profiles",
+  {
+    companyName: varchar("company_name", { length: 255 }),
+    competencies:
+      jsonb("competencies").$type<
+        Array<{ depth: number; name: string; weight: number }>
+      >(),
+    createdAt: timestamp("created_at", { withTimezone: false })
+      .defaultNow()
+      .notNull(),
+    deletedAt: timestamp("deleted_at", { withTimezone: false }), // Soft delete
+    hardSkills: jsonb("hard_skills").$type<string[]>(),
+    id: uuid("id").defaultRandom().primaryKey(),
+    interviewDifficultyLevel: real("interview_difficulty_level"),
+    jobTitle: varchar("job_title", { length: 255 }),
+    jobUrl: text("job_url"),
+    rawJd: text("raw_jd"),
+    seniorityLevel: integer("seniority_level"),
+    softSkills: jsonb("soft_skills").$type<string[]>(),
+    updatedAt: timestamp("updated_at", { withTimezone: false })
+      .defaultNow()
+      .notNull(),
+    userId: uuid("user_id")
+      .notNull()
+      .references(() => users.id),
+  },
+  (table) => ({
+    userIdActiveIdx: index("idx_job_profiles_user_id_active")
+      .on(table.userId)
+      .where(sql`${table.deletedAt} IS NULL`),
+  }),
+);
 
 // interview_sessions
 export const interviewSessions = pgTable("interview_sessions", {
