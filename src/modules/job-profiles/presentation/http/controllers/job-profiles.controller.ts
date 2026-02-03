@@ -29,6 +29,7 @@ import { PaginatedResult } from "@/common/dto/paginated-result.dto";
 import { SupabaseJwtGuard } from "@/modules/auth/guards/supabase-jwt.guard";
 
 import { ParseJobDescriptionCommand } from "../../../application/commands/impl/parse-job-description.command";
+import { RestoreJobProfileCommand } from "../../../application/commands/impl/restore-job-profile.command";
 import { SoftDeleteJobProfileCommand } from "../../../application/commands/impl/soft-delete-job-profile.command";
 import { UpdateJobProfileCommand } from "../../../application/commands/impl/update-job-profile.command";
 import { JobProfileDto } from "../../../application/dto/job-profile.dto";
@@ -488,6 +489,84 @@ export class JobProfilesController {
     this.logger.log(`Deleting job profile ${jobProfileId} for user ${user.id}`);
 
     const command = new SoftDeleteJobProfileCommand(user.id, jobProfileId);
+    await this.commandBus.execute(command);
+  }
+
+  @ApiOperation({
+    description:
+      "Restore a soft-deleted job profile by its ID. Users can only restore their own profiles.",
+    summary: "Restore job profile by ID",
+  })
+  @ApiParam({
+    description: "UUID of the job profile to restore",
+    example: "550e8400-e29b-41d4-a716-446655440000",
+    name: "jobProfileId",
+  })
+  @ApiResponse({
+    description: "Job profile restored successfully. No content returned.",
+    status: HttpStatus.NO_CONTENT,
+  })
+  @ApiResponse({
+    description: "Job profile not found",
+    schema: {
+      properties: {
+        error: { example: "Not Found", type: "string" },
+        message: { example: "Job profile not found", type: "string" },
+        statusCode: { example: 404, type: "number" },
+      },
+      type: "object",
+    },
+    status: HttpStatus.NOT_FOUND,
+  })
+  @ApiResponse({
+    description: "Job profile is not deleted",
+    schema: {
+      properties: {
+        error: { example: "Bad Request", type: "string" },
+        message: {
+          example: "Job profile is not deleted",
+          type: "string",
+        },
+        statusCode: { example: 400, type: "number" },
+      },
+      type: "object",
+    },
+    status: HttpStatus.BAD_REQUEST,
+  })
+  @ApiResponse({
+    description: "Access denied - profile belongs to another user",
+    schema: {
+      properties: {
+        error: { example: "Forbidden", type: "string" },
+        message: { example: "Access denied", type: "string" },
+        statusCode: { example: 403, type: "number" },
+      },
+      type: "object",
+    },
+    status: HttpStatus.FORBIDDEN,
+  })
+  @ApiResponse({
+    description: "Authentication required - missing or invalid JWT token",
+    schema: {
+      properties: {
+        message: { example: "Unauthorized", type: "string" },
+        statusCode: { example: 401, type: "number" },
+      },
+      type: "object",
+    },
+    status: HttpStatus.UNAUTHORIZED,
+  })
+  @HttpCode(HttpStatus.NO_CONTENT)
+  @Post(":jobProfileId/restore")
+  async restore(
+    @Param("jobProfileId", ParseUUIDPipe) jobProfileId: string,
+    @CurrentUser() user: { id: string },
+  ): Promise<void> {
+    this.logger.log(
+      `Restoring job profile ${jobProfileId} for user ${user.id}`,
+    );
+
+    const command = new RestoreJobProfileCommand(user.id, jobProfileId);
     await this.commandBus.execute(command);
   }
 }

@@ -46,6 +46,8 @@ export class SoftDeleteJobProfileHandler implements ICommandHandler<SoftDeleteJo
       throw new ForbiddenException("Access denied");
     }
 
+    jobProfile.softDelete();
+
     // Soft delete via repository (updates deleted_at timestamp)
     await this.repository.softDelete(jobProfileId);
 

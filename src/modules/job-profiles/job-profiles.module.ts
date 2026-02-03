@@ -6,6 +6,7 @@ import { DatabaseModule } from "@/database/database.module";
 import { AuthModule } from "@/modules/auth/auth.module";
 
 import { ParseJobDescriptionHandler } from "./application/commands/handlers/parse-job-description.handler";
+import { RestoreJobProfileHandler } from "./application/commands/handlers/restore-job-profile.handler";
 import { SoftDeleteJobProfileHandler } from "./application/commands/handlers/soft-delete-job-profile.handler";
 import { UpdateJobProfileHandler } from "./application/commands/handlers/update-job-profile.handler";
 import { GetJobProfileHandler } from "./application/queries/handlers/get-job-profile.handler";
@@ -20,6 +21,7 @@ import { JobProfilesController } from "./presentation/http/controllers/job-profi
 
 const CommandHandlers = [
   ParseJobDescriptionHandler,
+  RestoreJobProfileHandler,
   SoftDeleteJobProfileHandler,
   UpdateJobProfileHandler,
 ];
