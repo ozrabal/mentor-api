@@ -13,11 +13,13 @@ import { PaginatedResult } from "@/common/dto/paginated-result.dto";
 import { SupabaseJwtGuard } from "@/modules/auth/guards/supabase-jwt.guard";
 
 import { SoftDeleteJobProfileCommand } from "../../../application/commands/impl/soft-delete-job-profile.command";
+import { UpdateJobProfileCommand } from "../../../application/commands/impl/update-job-profile.command";
 import { JobProfileDto } from "../../../application/dto/job-profile.dto";
 import { GetJobProfileQuery } from "../../../application/queries/impl/get-job-profile.query";
 import { SearchJobProfilesQuery } from "../../../application/queries/impl/search-job-profiles.query";
 import { JobProfileSearchDto } from "../dto/job-profile-search.dto";
 import { JobProfileListItemDto } from "../dto/list-job-profiles-response.dto";
+import { UpdateJobProfileRequestDto } from "../dto/update-job-profile-request.dto";
 import { JobProfilesController } from "./job-profiles.controller";
 
 describe("JobProfilesController", () => {
@@ -486,6 +488,81 @@ describe("JobProfilesController", () => {
       const result = await controller.parse(parseDto, user);
 
       expect(result.id).toBe("new-profile");
+    });
+  });
+
+  describe("update", () => {
+    it("should update job profile for authenticated user", async () => {
+      const userId = "user-123";
+      const jobProfileId = "profile-456";
+      const user = { id: userId };
+
+      const updateDto: UpdateJobProfileRequestDto = {
+        jobTitle: "Updated Senior Engineer",
+        companyName: "Updated Company",
+        seniorityLevel: 9,
+      };
+
+      const mockUpdatedProfile: JobProfileDto = {
+        id: jobProfileId,
+        userId: userId,
+        jobTitle: "Updated Senior Engineer",
+        companyName: "Updated Company",
+        jobUrl: undefined,
+        rawJD: "Original JD",
+        competencies: [{ name: "Programming", weight: 1, depth: 8 }],
+        hardSkills: ["TypeScript", "Go"],
+        softSkills: ["Communication"],
+        seniorityLevel: 9,
+        interviewDifficultyLevel: 8,
+        createdAt: new Date("2026-01-27T10:00:00Z"),
+        updatedAt: new Date("2026-01-31T15:30:00Z"),
+      };
+
+      commandBus.execute.mockResolvedValue(mockUpdatedProfile);
+
+      const result = await controller.update(jobProfileId, updateDto, user);
+
+      expect(commandBus.execute).toHaveBeenCalledWith(
+        expect.any(UpdateJobProfileCommand),
+      );
+      expect(result.id).toBe(jobProfileId);
+      expect(result.jobTitle).toBe("Updated Senior Engineer");
+      expect(result.companyName).toBe("Updated Company");
+      expect(result.seniorityLevel).toBe(9);
+    });
+
+    it("should pass only provided fields to command", async () => {
+      const userId = "user-123";
+      const jobProfileId = "profile-456";
+      const user = { id: userId };
+
+      const updateDto: UpdateJobProfileRequestDto = {
+        jobTitle: "Updated Title",
+      };
+
+      commandBus.execute.mockResolvedValue({
+        id: jobProfileId,
+        userId,
+        jobTitle: "Updated Title",
+        createdAt: new Date(),
+        updatedAt: new Date(),
+        competencies: [],
+        hardSkills: [],
+        softSkills: [],
+      });
+
+      await controller.update(jobProfileId, updateDto, user);
+
+      expect(commandBus.execute).toHaveBeenCalledWith(
+        expect.objectContaining({
+          userId,
+          jobProfileId,
+          jobTitle: "Updated Title",
+          companyName: undefined,
+          seniorityLevel: undefined,
+        }),
+      );
     });
   });
 
