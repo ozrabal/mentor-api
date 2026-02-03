@@ -169,6 +169,92 @@ curl -X GET http://localhost:3000/api/v1/job-profiles/550e8400-e29b-41d4-a716-44
   -H "Authorization: Bearer YOUR_JWT_TOKEN"
 ```
 
+### PATCH /api/v1/job-profiles/:jobProfileId
+
+Update an existing job profile. All fields are optional.
+
+**Authentication:** Required (JWT Bearer token)
+
+**Path Parameters:**
+
+- `jobProfileId` (string, required) - UUID of the job profile
+
+**Request Body:**
+
+```json
+{
+  "jobTitle": "Principal Software Engineer",
+  "companyName": "Updated Tech Corp",
+  "competencies": [
+    {
+      "name": "System Design",
+      "weight": 0.4,
+      "depth": 10
+    }
+  ],
+  "hardSkills": ["Go", "Rust", "Kubernetes"],
+  "softSkills": ["Leadership", "Mentoring"],
+  "seniorityLevel": 9,
+  "interviewDifficultyLevel": 9
+}
+```
+
+All fields are optional. Only provided fields will be updated.
+
+**Response (200 OK):**
+
+```json
+{
+  "id": "550e8400-e29b-41d4-a716-446655440000",
+  "userId": "user-123",
+  "jobTitle": "Principal Software Engineer",
+  "companyName": "Updated Tech Corp",
+  "jobUrl": "https://example.com/job",
+  "rawJD": "Original job description (immutable)",
+  "competencies": [
+    {
+      "name": "System Design",
+      "weight": 0.4,
+      "depth": 10
+    }
+  ],
+  "hardSkills": ["Go", "Rust", "Kubernetes"],
+  "softSkills": ["Leadership", "Mentoring"],
+  "seniorityLevel": 9,
+  "interviewDifficultyLevel": 9,
+  "createdAt": "2026-01-27T10:00:00Z",
+  "updatedAt": "2026-01-31T15:30:00Z"
+}
+```
+
+**Error Responses:**
+
+- `400 Bad Request` - Validation error (e.g., seniorityLevel > 10)
+- `401 Unauthorized` - Missing or invalid JWT token
+- `403 Forbidden` - Job profile belongs to another user
+- `404 Not Found` - Job profile not found or soft-deleted
+- `409 Conflict` - Cannot update deleted profile (restore first)
+
+**Notes:**
+
+- `jobUrl` and `rawJD` are immutable and cannot be updated
+- Only the profile owner can update it
+- Soft-deleted profiles cannot be updated (restore first)
+- `updatedAt` timestamp is automatically updated
+
+**Example:**
+
+```bash
+curl -X PATCH http://localhost:3000/api/v1/job-profiles/550e8400-e29b-41d4-a716-446655440000 \
+  -H "Authorization: Bearer YOUR_JWT_TOKEN" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "jobTitle": "Principal Software Engineer",
+    "seniorityLevel": 9,
+    "hardSkills": ["Go", "Rust", "Kubernetes"]
+  }'
+```
+
 ### DELETE /api/v1/job-profiles/:jobProfileId
 
 Soft delete a job profile by its ID.
