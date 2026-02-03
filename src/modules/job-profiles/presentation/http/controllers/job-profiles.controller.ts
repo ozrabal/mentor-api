@@ -303,6 +303,103 @@ export class JobProfilesController {
     return JobProfileHttpMapper.toGetResponse(result);
   }
 
+  @ApiOperation({
+    description:
+      "Update an existing job profile. Users can only update their own profiles. " +
+      "All fields are optional - only provided fields will be updated. " +
+      "Note: jobUrl and rawJD are immutable and cannot be updated.",
+    summary: "Update job profile",
+  })
+  @ApiParam({
+    description: "UUID of the job profile to update",
+    example: "550e8400-e29b-41d4-a716-446655440000",
+    name: "jobProfileId",
+  })
+  @ApiResponse({
+    description: "Job profile updated successfully",
+    status: HttpStatus.OK,
+    type: UpdateJobProfileResponseDto,
+  })
+  @ApiResponse({
+    description: "Validation error (e.g., seniorityLevel > 10)",
+    schema: {
+      properties: {
+        error: { example: "Bad Request", type: "string" },
+        message: {
+          example: [
+            "seniorityLevel must not be greater than 10",
+            "seniorityLevel must not be less than 1",
+          ],
+          type: "array",
+        },
+        statusCode: { example: 400, type: "number" },
+      },
+      type: "object",
+    },
+    status: HttpStatus.BAD_REQUEST,
+  })
+  @ApiResponse({
+    description: "Authentication required (missing or invalid JWT token)",
+    schema: {
+      properties: {
+        message: { example: "Unauthorized", type: "string" },
+        statusCode: { example: 401, type: "number" },
+      },
+      type: "object",
+    },
+    status: HttpStatus.UNAUTHORIZED,
+  })
+  @ApiResponse({
+    description: "Access denied - profile belongs to another user",
+    schema: {
+      properties: {
+        error: { example: "Forbidden", type: "string" },
+        message: { example: "Access denied", type: "string" },
+        statusCode: { example: 403, type: "number" },
+      },
+      type: "object",
+    },
+    status: HttpStatus.FORBIDDEN,
+  })
+  @ApiResponse({
+    description: "Job profile not found or soft-deleted",
+    schema: {
+      properties: {
+        error: { example: "Not Found", type: "string" },
+        message: { example: "Job profile not found", type: "string" },
+        statusCode: { example: 404, type: "number" },
+      },
+      type: "object",
+    },
+    status: HttpStatus.NOT_FOUND,
+  })
+  @ApiResponse({
+    description: "Cannot update deleted job profile",
+    schema: {
+      properties: {
+        error: { example: "Conflict", type: "string" },
+        message: {
+          example: "Cannot update deleted job profile. Restore it first.",
+          type: "string",
+        },
+        statusCode: { example: 409, type: "number" },
+      },
+      type: "object",
+    },
+    status: HttpStatus.CONFLICT,
+  })
+  @ApiResponse({
+    description: "Internal server error",
+    schema: {
+      properties: {
+        error: { example: "Internal Server Error", type: "string" },
+        message: { example: "Internal server error", type: "string" },
+        statusCode: { example: 500, type: "number" },
+      },
+      type: "object",
+    },
+    status: HttpStatus.INTERNAL_SERVER_ERROR,
+  })
   @Patch(":jobProfileId")
   async update(
     @Param("jobProfileId", ParseUUIDPipe) jobProfileId: string,
