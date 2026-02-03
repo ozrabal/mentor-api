@@ -41,6 +41,7 @@ export class JobProfilePersistenceMapper {
   static toOrmInsert(domain: JobProfile): {
     companyName?: string;
     competencies?: unknown;
+    createdAt: Date;
     deletedAt?: Date;
     hardSkills?: unknown;
     interviewDifficultyLevel?: number;
@@ -49,11 +50,13 @@ export class JobProfilePersistenceMapper {
     rawJd?: string;
     seniorityLevel?: number;
     softSkills?: unknown;
+    updatedAt: Date;
     userId: string;
   } {
     return {
       companyName: domain.getCompanyName(),
       competencies: domain.getCompetencies().map((c) => c.toPlainObject()),
+      createdAt: domain.getCreatedAt(),
       deletedAt: domain.getDeletedAt(),
       hardSkills: domain.getHardSkills(),
       interviewDifficultyLevel: domain.getInterviewDifficultyLevel(),
@@ -62,7 +65,30 @@ export class JobProfilePersistenceMapper {
       rawJd: domain.getRawJD(),
       seniorityLevel: domain.getSeniorityLevel()?.getValue(),
       softSkills: domain.getSoftSkills(),
+      updatedAt: domain.getUpdatedAt(),
       userId: domain.getUserId().getValue(),
+    };
+  }
+
+  static toOrmUpdate(domain: JobProfile): {
+    companyName?: string;
+    competencies?: unknown;
+    hardSkills?: unknown;
+    interviewDifficultyLevel?: number;
+    jobTitle?: string;
+    seniorityLevel?: number;
+    softSkills?: unknown;
+    updatedAt: Date;
+  } {
+    return {
+      companyName: domain.getCompanyName(),
+      competencies: domain.getCompetencies().map((c) => c.toPlainObject()),
+      hardSkills: domain.getHardSkills(),
+      interviewDifficultyLevel: domain.getInterviewDifficultyLevel(),
+      jobTitle: domain.getJobTitle(),
+      seniorityLevel: domain.getSeniorityLevel()?.getValue(),
+      softSkills: domain.getSoftSkills(),
+      updatedAt: domain.getUpdatedAt(),
     };
   }
 }

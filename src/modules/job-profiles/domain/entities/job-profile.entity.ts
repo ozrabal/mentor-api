@@ -148,7 +148,7 @@ export class JobProfile {
   }
 
   isDeleted(): boolean {
-    return this.deletedAt !== undefined;
+    return this.deletedAt !== undefined && this.deletedAt !== null;
   }
 
   // Business methods

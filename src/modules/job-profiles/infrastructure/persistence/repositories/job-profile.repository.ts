@@ -32,11 +32,35 @@ export class JobProfileRepository implements IJobProfileRepository {
 
   async save(jobProfile: JobProfile): Promise<void> {
     const ormEntity = JobProfilePersistenceMapper.toOrmInsert(jobProfile);
+    const updateEntity = JobProfilePersistenceMapper.toOrmUpdate(jobProfile);
+
+    const updated = await this.db
+      .update(jobProfiles)
+      .set({
+        companyName: updateEntity.companyName,
+        competencies: updateEntity.competencies as
+          | Array<{ depth: number; name: string; weight: number }>
+          | undefined,
+        hardSkills: updateEntity.hardSkills as string[] | undefined,
+        interviewDifficultyLevel: updateEntity.interviewDifficultyLevel,
+        jobTitle: updateEntity.jobTitle,
+        seniorityLevel: updateEntity.seniorityLevel,
+        softSkills: updateEntity.softSkills as string[] | undefined,
+        updatedAt: updateEntity.updatedAt,
+      })
+      .where(eq(jobProfiles.id, jobProfile.getId().getValue()))
+      .returning({ id: jobProfiles.id });
+
+    if (updated.length > 0) {
+      return;
+    }
+
     await this.db.insert(jobProfiles).values({
       companyName: ormEntity.companyName,
       competencies: ormEntity.competencies as
         | Array<{ depth: number; name: string; weight: number }>
         | undefined,
+      createdAt: ormEntity.createdAt,
       deletedAt: ormEntity.deletedAt,
       hardSkills: ormEntity.hardSkills as string[] | undefined,
       id: jobProfile.getId().getValue(),
@@ -46,6 +70,7 @@ export class JobProfileRepository implements IJobProfileRepository {
       rawJd: ormEntity.rawJd,
       seniorityLevel: ormEntity.seniorityLevel,
       softSkills: ormEntity.softSkills as string[] | undefined,
+      updatedAt: ormEntity.updatedAt,
       userId: ormEntity.userId,
     });
   }
