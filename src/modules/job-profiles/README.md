@@ -31,6 +31,11 @@ The Job Profiles module parses job descriptions using AI (via Vercel AI SDK) to 
   - Soft-deleted profiles excluded from all queries
   - Returns 204 No Content on success
 
+- **Restore Job Profile** (FR-JP-005)
+  - Restore a soft-deleted job profile by ID
+  - User authorization (can only restore own profiles)
+  - Returns 204 No Content on success
+
 ## Architecture
 
 This module follows the **Modular Monolith** architecture with:
@@ -286,6 +291,42 @@ No content returned on success.
 
 ```bash
 curl -X DELETE http://localhost:3000/api/v1/job-profiles/550e8400-e29b-41d4-a716-446655440000 \
+  -H "Authorization: Bearer YOUR_JWT_TOKEN" \
+  -v
+
+# Success: HTTP/1.1 204 No Content
+```
+
+### POST /api/v1/job-profiles/:jobProfileId/restore
+
+Restore a soft-deleted job profile by its ID.
+
+**Authentication:** Required (JWT Bearer token)
+
+**Path Parameters:**
+
+- `jobProfileId` (string, required) - UUID of the job profile to restore
+
+**Response (204 No Content):**
+
+No content returned on success.
+
+**Error Responses:**
+
+- `400 Bad Request` - Job profile is not deleted
+- `401 Unauthorized` - Missing or invalid JWT token
+- `403 Forbidden` - Job profile belongs to another user
+- `404 Not Found` - Job profile not found
+
+**Behavior:**
+
+- Restore clears the `deleted_at` timestamp
+- Only the profile owner can restore their own profiles
+
+**Example:**
+
+```bash
+curl -X POST http://localhost:3000/api/v1/job-profiles/550e8400-e29b-41d4-a716-446655440000/restore \
   -H "Authorization: Bearer YOUR_JWT_TOKEN" \
   -v
 
