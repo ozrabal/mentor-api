@@ -7,6 +7,6 @@ export class QuestionResponseDto {
 
 export class StartInterviewResponseDto {
   sessionId!: string;
-  firstQuestion!: QuestionResponseDto;
+  question!: QuestionResponseDto;
   sessionToken!: string;
 }

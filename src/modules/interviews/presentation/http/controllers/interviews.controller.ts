@@ -4,6 +4,8 @@ import { ApiBearerAuth, ApiTags } from "@nestjs/swagger";
 
 import { CurrentUser } from "@/common/decorators/current-user.decorator";
 import { SupabaseJwtGuard } from "@/modules/auth/guards/supabase-jwt.guard";
+import { StartInterviewCommand } from "@/modules/interviews/application/commands/impl/start-interview.command";
+import { InterviewSessionDto } from "@/modules/interviews/application/dto/interview-session.dto";
 
 import { StartInterviewRequestDto } from "../dto/start-interview-request.dto";
 import { StartInterviewResponseDto } from "../dto/start-interview-response.dto";
@@ -22,7 +24,10 @@ export class InterviewsController {
     @CurrentUser() user: { id: string },
   ): Promise<StartInterviewResponseDto> {
     const command = StartInterviewMapper.toCommand(dto, user.id);
-    const result = await this.commandBus.execute(command);
+    const result = await this.commandBus.execute<
+      StartInterviewCommand,
+      InterviewSessionDto
+    >(command);
     return StartInterviewMapper.toResponseDto(result);
   }
 }

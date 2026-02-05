@@ -20,11 +20,11 @@ export class StartInterviewMapper {
     sessionDto: InterviewSessionDto,
   ): StartInterviewResponseDto {
     return {
-      firstQuestion: {
-        category: sessionDto.firstQuestion.category,
-        difficulty: sessionDto.firstQuestion.difficulty,
-        id: sessionDto.firstQuestion.id,
-        text: sessionDto.firstQuestion.text,
+      question: {
+        category: sessionDto.question.category,
+        difficulty: sessionDto.question.difficulty,
+        id: sessionDto.question.id,
+        text: sessionDto.question.text,
       },
       sessionId: sessionDto.sessionId,
       sessionToken: sessionDto.sessionToken,
