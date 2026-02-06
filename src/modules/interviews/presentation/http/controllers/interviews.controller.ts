@@ -3,6 +3,7 @@ import {
   Controller,
   HttpCode,
   HttpStatus,
+  Param,
   Post,
   UseGuards,
 } from "@nestjs/common";
@@ -21,7 +22,10 @@ import { InterviewSessionDto } from "@/modules/interviews/application/dto/interv
 
 import { StartInterviewRequestDto } from "../dto/start-interview-request.dto";
 import { StartInterviewResponseDto } from "../dto/start-interview-response.dto";
+import { SubmitAnswerRequestDto } from "../dto/submit-answer-request.dto";
+import { SubmitAnswerResponseDto } from "../dto/submit-answer-response.dto";
 import { StartInterviewMapper } from "../mappers/start-interview.mapper";
+import { SubmitAnswerMapper } from "../mappers/submit-answer.mapper";
 
 @ApiBearerAuth("JWT-auth")
 @ApiTags("interviews")
@@ -117,5 +121,22 @@ export class InterviewsController {
       InterviewSessionDto
     >(command);
     return StartInterviewMapper.toResponseDto(result);
+  }
+
+  /**
+   * Submit an answer to an interview question
+   *
+   * POST /api/v1/interviews/:sessionId/answer
+   */
+  @HttpCode(HttpStatus.OK)
+  @Post(":sessionId/answer")
+  async submitAnswer(
+    @Param("sessionId") sessionId: string,
+    @Body() dto: SubmitAnswerRequestDto,
+    @CurrentUser() user: { id: string },
+  ): Promise<SubmitAnswerResponseDto> {
+    const command = SubmitAnswerMapper.toCommand(sessionId, dto, user.id);
+    const result = await this.commandBus.execute(command);
+    return SubmitAnswerMapper.toResponseDto(result);
   }
 }
