@@ -19,7 +19,9 @@ import {
 import { CurrentUser } from "@/common/decorators/current-user.decorator";
 import { SupabaseJwtGuard } from "@/modules/auth/guards/supabase-jwt.guard";
 import { StartInterviewCommand } from "@/modules/interviews/application/commands/impl/start-interview.command";
+import { SubmitAnswerCommand } from "@/modules/interviews/application/commands/impl/submit-answer.command";
 import { InterviewSessionDto } from "@/modules/interviews/application/dto/interview-session.dto";
+import { SubmitAnswerResultDto } from "@/modules/interviews/application/dto/submit-answer.dto";
 
 import { StartInterviewRequestDto } from "../dto/start-interview-request.dto";
 import { StartInterviewResponseDto } from "../dto/start-interview-response.dto";
@@ -194,7 +196,10 @@ export class InterviewsController {
     @CurrentUser() user: { id: string },
   ): Promise<SubmitAnswerResponseDto> {
     const command = SubmitAnswerMapper.toCommand(sessionId, dto, user.id);
-    const result = await this.commandBus.execute(command);
+    const result = await this.commandBus.execute<
+      SubmitAnswerCommand,
+      SubmitAnswerResultDto
+    >(command);
     return SubmitAnswerMapper.toResponseDto(result);
   }
 }
