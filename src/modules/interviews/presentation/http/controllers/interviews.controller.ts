@@ -23,10 +23,13 @@ import { SubmitAnswerCommand } from "@/modules/interviews/application/commands/i
 import { InterviewSessionDto } from "@/modules/interviews/application/dto/interview-session.dto";
 import { SubmitAnswerResultDto } from "@/modules/interviews/application/dto/submit-answer.dto";
 
+import { CompleteInterviewRequestDto } from "../dto/complete-interview-request.dto";
+import { CompleteInterviewResponseDto } from "../dto/complete-interview-response.dto";
 import { StartInterviewRequestDto } from "../dto/start-interview-request.dto";
 import { StartInterviewResponseDto } from "../dto/start-interview-response.dto";
 import { SubmitAnswerRequestDto } from "../dto/submit-answer-request.dto";
 import { SubmitAnswerResponseDto } from "../dto/submit-answer-response.dto";
+import { CompleteInterviewHttpMapper } from "../mappers/complete-interview-http.mapper";
 import { StartInterviewMapper } from "../mappers/start-interview.mapper";
 import { SubmitAnswerMapper } from "../mappers/submit-answer.mapper";
 
@@ -201,5 +204,20 @@ export class InterviewsController {
       SubmitAnswerResultDto
     >(command);
     return SubmitAnswerMapper.toResponseDto(result);
+  }
+
+  @Post(":sessionId/complete")
+  async completeInterview(
+    @Param("sessionId") sessionId: string,
+    @Body() dto: CompleteInterviewRequestDto,
+    @CurrentUser() user: { id: string },
+  ): Promise<CompleteInterviewResponseDto> {
+    const command = CompleteInterviewHttpMapper.toCommand(
+      sessionId,
+      user.id,
+      dto,
+    );
+    const result = await this.commandBus.execute(command);
+    return CompleteInterviewHttpMapper.toResponseDto(result);
   }
 }

@@ -5,6 +5,7 @@ import { DatabaseModule } from "@/database/database.module";
 import { AuthModule } from "@/modules/auth/auth.module";
 import { JobProfilesModule } from "@/modules/job-profiles/job-profiles.module";
 
+import { CompleteInterviewHandler } from "./application/commands/handlers/complete-interview.handler";
 import { StartInterviewHandler } from "./application/commands/handlers/start-interview.handler";
 import { SubmitAnswerHandler } from "./application/commands/handlers/submit-answer.handler";
 import { AdaptiveQuestionSelectorService } from "./application/services/adaptive-question-selector.service";
@@ -16,7 +17,11 @@ import { InterviewSessionRepository } from "./infrastructure/persistence/reposit
 import { QuestionSelectorService } from "./infrastructure/services/question-selector.service";
 import { InterviewsController } from "./presentation/http/controllers/interviews.controller";
 
-const CommandHandlers = [StartInterviewHandler, SubmitAnswerHandler];
+const CommandHandlers = [
+  StartInterviewHandler,
+  SubmitAnswerHandler,
+  CompleteInterviewHandler,
+];
 
 const Services = [
   ScoringService,
