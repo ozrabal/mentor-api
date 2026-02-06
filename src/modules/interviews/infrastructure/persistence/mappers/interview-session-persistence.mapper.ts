@@ -20,28 +20,31 @@ export class InterviewSessionPersistenceMapper {
     relevanceScores: number[];
     responses: Array<{
       answer_text: string;
+      duration_seconds: number;
       question_id: string;
       timestamp: string;
     }>;
     sessionOverallScore: null | number;
     status: "completed" | "in_progress";
+    updatedAt: Date;
     userId: string;
   } {
     return {
-      clarityScores: [],
+      clarityScores: session.getClarityScores(),
       completedAt: null,
-      completenessScores: [],
-      confidenceScores: [],
+      completenessScores: session.getCompletenessScores(),
+      confidenceScores: session.getConfidenceScores(),
       createdAt: session.getCreatedAt(),
       id: session.getId().getValue(),
       interviewType: session.getInterviewType().getValue(),
       jobProfileId: session.getJobProfileId(),
-      overallScores: [],
+      overallScores: session.getOverallScores(),
       questionsAsked: session.getQuestionsAsked(),
-      relevanceScores: [],
-      responses: [],
-      sessionOverallScore: null,
+      relevanceScores: session.getRelevanceScores(),
+      responses: session.getResponses(),
+      sessionOverallScore: session.getLastScore(),
       status: session.getStatus(),
+      updatedAt: new Date(),
       userId: session.getUserId(),
     };
   }
@@ -64,8 +67,14 @@ export class InterviewSessionPersistenceMapper {
         text: string;
       }> | null;
       relevanceScores: null | number[];
-      responses: null | unknown[];
+      responses: Array<{
+        answer_text: string;
+        duration_seconds: number;
+        question_id: string;
+        timestamp: string;
+      }> | null;
       status: "completed" | "in_progress";
+      updatedAt: Date;
       userId: string;
     };
 
@@ -83,6 +92,7 @@ export class InterviewSessionPersistenceMapper {
       relevanceScores: entity.relevanceScores ?? [],
       responses: entity.responses ?? [],
       status: entity.status,
+      updatedAt: entity.updatedAt,
       userId: entity.userId,
     });
   }

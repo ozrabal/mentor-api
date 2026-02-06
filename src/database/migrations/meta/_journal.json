@@ -15,6 +15,13 @@
       "when": 1770150324690,
       "tag": "0001_add_job_profiles_user_id_active_index",
       "breakpoints": true
+    },
+    {
+      "idx": 2,
+      "version": "7",
+      "when": 1770401050088,
+      "tag": "0002_vengeful_husk",
+      "breakpoints": true
     }
   ]
 }

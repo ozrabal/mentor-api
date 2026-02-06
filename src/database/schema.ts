@@ -93,12 +93,19 @@ export const interviewSessions = pgTable("interview_sessions", {
       Array<{ category: string; difficulty: number; id: string; text: string }>
     >(),
   relevanceScores: jsonb("relevance_scores").$type<number[]>(),
-  responses:
-    jsonb("responses").$type<
-      Array<{ answer_text: string; question_id: string; timestamp: string }>
-    >(),
+  responses: jsonb("responses").$type<
+    Array<{
+      answer_text: string;
+      duration_seconds: number;
+      question_id: string;
+      timestamp: string;
+    }>
+  >(),
   sessionOverallScore: real("session_overall_score"),
   status: varchar("status", { length: 50 }), // 'in_progress' | 'completed'
+  updatedAt: timestamp("updated_at", { withTimezone: false })
+    .defaultNow()
+    .notNull(),
   userId: uuid("user_id")
     .notNull()
     .references(() => users.id),
