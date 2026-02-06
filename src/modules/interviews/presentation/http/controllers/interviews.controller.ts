@@ -11,6 +11,7 @@ import { CommandBus } from "@nestjs/cqrs";
 import {
   ApiBearerAuth,
   ApiOperation,
+  ApiParam,
   ApiResponse,
   ApiTags,
 } from "@nestjs/swagger";
@@ -128,6 +129,63 @@ export class InterviewsController {
    *
    * POST /api/v1/interviews/:sessionId/answer
    */
+  @ApiOperation({
+    description:
+      "Submits an answer to the current question in an active interview session.",
+    summary: "Submit an answer to an interview question",
+  })
+  @ApiParam({
+    description: "Interview session ID",
+    example: "550e8400-e29b-41d4-a716-446655440000",
+    name: "sessionId",
+  })
+  @ApiResponse({
+    description: "Answer submitted successfully with scores and next question",
+    status: 200,
+    type: SubmitAnswerResponseDto,
+  })
+  @ApiResponse({
+    description:
+      "Bad Request - Session not in progress, invalid question ID, or validation error",
+    schema: {
+      example: {
+        error: "Bad Request",
+        message: "Interview session is not in progress",
+        statusCode: 400,
+      },
+    },
+    status: 400,
+  })
+  @ApiResponse({
+    description: "Unauthorized - Missing or invalid JWT token",
+    status: 401,
+  })
+  @ApiResponse({
+    description: "Forbidden - User does not own this interview session",
+    schema: {
+      example: {
+        error: "Forbidden",
+        message: "You do not have access to this interview session",
+        statusCode: 403,
+      },
+    },
+    status: 403,
+  })
+  @ApiResponse({
+    description: "Not Found - Interview session or job profile not found",
+    schema: {
+      example: {
+        error: "Not Found",
+        message: "Interview session not found",
+        statusCode: 404,
+      },
+    },
+    status: 404,
+  })
+  @ApiResponse({
+    description: "Internal Server Error",
+    status: 500,
+  })
   @HttpCode(HttpStatus.OK)
   @Post(":sessionId/answer")
   async submitAnswer(
