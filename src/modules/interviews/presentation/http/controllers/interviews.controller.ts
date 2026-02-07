@@ -10,6 +10,7 @@ import {
 import { CommandBus } from "@nestjs/cqrs";
 import {
   ApiBearerAuth,
+  ApiBody,
   ApiOperation,
   ApiParam,
   ApiResponse,
@@ -208,6 +209,82 @@ export class InterviewsController {
     return SubmitAnswerMapper.toResponseDto(result);
   }
 
+  @ApiBody({
+    description: "Optional completion parameters",
+    type: CompleteInterviewRequestDto,
+  })
+  @ApiOperation({
+    description:
+      "Finalizes an interview session by calculating aggregate scores, generating competency breakdown, calculating success probability, creating a report, and updating the session status to completed",
+    summary: "Complete interview session",
+  })
+  @ApiParam({
+    description: "Interview session ID",
+    example: "123e4567-e89b-12d3-a456-426614174000",
+    name: "sessionId",
+    type: "string",
+  })
+  @ApiResponse({
+    description: "Interview session completed successfully",
+    status: 200,
+    type: CompleteInterviewResponseDto,
+  })
+  @ApiResponse({
+    description: "Session is not in progress or invalid state",
+    schema: {
+      example: {
+        error: "Bad Request",
+        message: "Cannot complete interview session with status: completed",
+        statusCode: 400,
+      },
+    },
+    status: 400,
+  })
+  @ApiResponse({
+    description: "Unauthorized - Invalid or missing JWT token",
+    schema: {
+      example: {
+        message: "Unauthorized",
+        statusCode: 401,
+      },
+    },
+    status: 401,
+  })
+  @ApiResponse({
+    description: "Forbidden - User does not own this session",
+    schema: {
+      example: {
+        error: "Forbidden",
+        message:
+          "You do not have permission to complete this interview session",
+        statusCode: 403,
+      },
+    },
+    status: 403,
+  })
+  @ApiResponse({
+    description: "Interview session not found",
+    schema: {
+      example: {
+        error: "Not Found",
+        message: "Interview session with ID xxx not found",
+        statusCode: 404,
+      },
+    },
+    status: 404,
+  })
+  @ApiResponse({
+    description: "Internal server error",
+    schema: {
+      example: {
+        error: "Internal Server Error",
+        message: "Internal server error",
+        statusCode: 500,
+      },
+    },
+    status: 500,
+  })
+  @HttpCode(HttpStatus.OK)
   @Post(":sessionId/complete")
   async completeInterview(
     @Param("sessionId") sessionId: string,
