@@ -18,8 +18,10 @@ import {
 
 import { CurrentUser } from "@/common/decorators/current-user.decorator";
 import { SupabaseJwtGuard } from "@/modules/auth/guards/supabase-jwt.guard";
+import { CompleteInterviewCommand } from "@/modules/interviews/application/commands/impl/complete-interview.command";
 import { StartInterviewCommand } from "@/modules/interviews/application/commands/impl/start-interview.command";
 import { SubmitAnswerCommand } from "@/modules/interviews/application/commands/impl/submit-answer.command";
+import { CompleteInterviewResultDto } from "@/modules/interviews/application/dto/complete-interview.dto";
 import { InterviewSessionDto } from "@/modules/interviews/application/dto/interview-session.dto";
 import { SubmitAnswerResultDto } from "@/modules/interviews/application/dto/submit-answer.dto";
 
@@ -217,7 +219,10 @@ export class InterviewsController {
       user.id,
       dto,
     );
-    const result = await this.commandBus.execute(command);
+    const result = await this.commandBus.execute<
+      CompleteInterviewCommand,
+      CompleteInterviewResultDto
+    >(command);
     return CompleteInterviewHttpMapper.toResponseDto(result);
   }
 }

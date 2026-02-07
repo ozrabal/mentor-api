@@ -42,7 +42,7 @@ export class InterviewSessionPersistenceMapper {
       questionsAsked: session.getQuestionsAsked(),
       relevanceScores: session.getRelevanceScores(),
       responses: session.getResponses(),
-      sessionOverallScore: session.getLastScore(),
+      sessionOverallScore: session.getSessionOverallScore(),
       status: session.getStatus(),
       updatedAt: new Date(),
       userId: session.getUserId(),
@@ -73,6 +73,7 @@ export class InterviewSessionPersistenceMapper {
         question_id: string;
         timestamp: string;
       }> | null;
+      sessionOverallScore: null | number;
       status: "completed" | "in_progress";
       updatedAt: Date;
       userId: string;
@@ -91,6 +92,7 @@ export class InterviewSessionPersistenceMapper {
       questionsAsked: entity.questionsAsked ?? [],
       relevanceScores: entity.relevanceScores ?? [],
       responses: entity.responses ?? [],
+      sessionOverallScore: entity.sessionOverallScore ?? null,
       status: entity.status,
       updatedAt: entity.updatedAt,
       userId: entity.userId,

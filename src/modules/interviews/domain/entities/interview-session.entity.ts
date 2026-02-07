@@ -33,6 +33,7 @@ export class InterviewSession {
     private relevanceScores: number[],
     private confidenceScores: number[],
     private overallScores: number[],
+    private sessionOverallScore: null | number,
     private readonly createdAt: Date,
     private completedAt: Date | null,
     private updatedAt: Date,
@@ -58,6 +59,7 @@ export class InterviewSession {
       [],
       [],
       [],
+      null,
       now,
       null,
       now,
@@ -77,6 +79,7 @@ export class InterviewSession {
     questionsAsked: Question[];
     relevanceScores: number[];
     responses: Response[];
+    sessionOverallScore: null | number;
     status: "completed" | "in_progress";
     updatedAt: Date;
     userId: string;
@@ -94,6 +97,7 @@ export class InterviewSession {
       snapshot.relevanceScores,
       snapshot.confidenceScores,
       snapshot.overallScores,
+      snapshot.sessionOverallScore,
       snapshot.createdAt,
       snapshot.completedAt,
       snapshot.updatedAt,
@@ -155,6 +159,10 @@ export class InterviewSession {
 
   getConfidenceScores(): number[] {
     return [...this.confidenceScores];
+  }
+
+  getSessionOverallScore(): null | number {
+    return this.sessionOverallScore;
   }
 
   /**
@@ -275,5 +283,24 @@ export class InterviewSession {
    */
   shouldEnd(): boolean {
     return this.responses.length >= 10 || this.getTimeRemaining() <= 0;
+  }
+
+  /**
+   * Complete the interview session
+   * Updates status to 'completed', sets completion timestamp, and stores overall score
+   *
+   * @param sessionOverallScore - The calculated overall score for the session
+   * @param _endedEarly - Optional flag indicating if session was ended early
+   * @throws Error if session is not in progress
+   */
+  complete(sessionOverallScore: number, _endedEarly?: boolean): void {
+    if (this.status !== "in_progress") {
+      throw new Error("Cannot complete a session that is not in progress");
+    }
+
+    this.status = "completed";
+    this.sessionOverallScore = sessionOverallScore;
+    this.completedAt = new Date();
+    this.updatedAt = new Date();
   }
 }
